@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1029253255579",
+    "project_id": "fir-grupo-grec",
+    "storage_bucket": "fir-grupo-grec.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1029253255579:android:0fdd9aaf1cd2ae4cfe113e",
+        "android_client_info": {
+          "package_name": "com.grupogrec.appgrec"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC3U0J-I8J47En9oTBmbvh7LsDk6Mrq6Rk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
