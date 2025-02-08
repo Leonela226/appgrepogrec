@@ -1,7 +1,9 @@
+import 'package:appgrec/src/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
-import 'package:appgrec/src/views/auth/login.dart';
+import 'package:appgrec/src/providers/auth.dart';
+
 
 void main() async {
   // Asegura que se inicialicen los widgets antes de comenzar
@@ -23,12 +25,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Aplicación de Login',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const LoginPage(), //  LoginPage
-    );
-  }
+      debugShowCheckedModeBanner: false,
+      initialRoute: '/register',  // Establece la ruta inicial a la pantalla de registro
+      routes: appRoutes );
+
+  } 
 }
