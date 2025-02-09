@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
       create: (context) => AuthProvider(), // Aquí se agrega el proveedor
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        initialRoute: '/register',  // Establece la ruta inicial a la pantalla de registro
+        initialRoute: '/welcome',  // Establece la ruta inicial a la pantalla de login
         routes: appRoutes,
       ),
     );
