@@ -18,6 +18,9 @@ class LoginPageState extends State<LoginPage> {
   final TextEditingController _passwordController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
+  final _emailFocusNode = FocusNode();
+  final _passwordFocusNode = FocusNode();
+
   // Función para manejar el inicio de sesión
   void _login(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
@@ -26,6 +29,7 @@ class LoginPageState extends State<LoginPage> {
         _emailController.text.trim(),
         _passwordController.text.trim(),
       );
+
       if (error != null) {
         // Si hay un error, mostrar un mensaje
         ScaffoldMessenger.of(context).showSnackBar(
@@ -41,7 +45,7 @@ class LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar:  const CustomAppBar(),
+      appBar: const CustomAppBar(),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -56,11 +60,15 @@ class LoginPageState extends State<LoginPage> {
                   icon: Icons.email,
                   keyboardType: TextInputType.emailAddress,
                   controller: _emailController,
+                  focusNode: _emailFocusNode, // Asignar FocusNode
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Ingrese un correo válido';
+                      return 'Por favor ingresa tu correo electrónico.';
                     }
                     return null;
+                  },
+                  onFieldSubmitted: (_) {
+                    FocusScope.of(context).requestFocus(_passwordFocusNode);
                   },
                 ),
                 SizedBox(height: 16),
@@ -70,11 +78,15 @@ class LoginPageState extends State<LoginPage> {
                   icon: Icons.lock,
                   obscureText: true,
                   controller: _passwordController,
+                  focusNode: _passwordFocusNode, // Asignar FocusNode
                   validator: (value) {
-                    if (value == null || value.length < 8) {
-                      return 'Ingrese una contraseña válida (mínimo 8 caracteres)';
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor ingresa tu contraseña.';
                     }
                     return null;
+                  },
+                  onFieldSubmitted: (_) {
+                    FocusScope.of(context).unfocus();    // Cierra el teclado cuando se termina el formulario
                   },
                 ),
                 SizedBox(height: 24),
