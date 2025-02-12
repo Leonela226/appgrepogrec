@@ -7,23 +7,26 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
+
     return AppBar(
       backgroundColor: Colors.white,
-      elevation: 4, // Sombra para destacar el appbar
+      elevation: 4, // Sombra para destacar el AppBar
       title: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
           Image.asset(
             'assets/images/splash.png', // Ruta del logo de la empresa
-            height: 40, // Ajusta el tamaño del logo
+            height: screenHeight * 0.06, // Tamaño del logo escalado (6% del alto de la pantalla)
           ),
-          const SizedBox(width: 10),
+          SizedBox(width: screenWidth * 0.02), // Espaciado dinámico
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'TitilliumWeb-Bold',
-              fontSize: 20,
+              fontSize: screenWidth * 0.05, // Tamaño de texto adaptativo
               color: Colors.black,
             ),
           ),
