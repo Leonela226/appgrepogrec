@@ -36,7 +36,7 @@ String? validateUsername(String? value) {
 
 String? validatePhoneNumber(String? value) {
   if (value == null || value.isEmpty) {
-    return null; // No es obligatorio, por lo que no se realiza validación si está vacío
+    return 'Este campo es obligatorio';
   }
   String pattern = r'^[3-9][0-9]{7}$';
   RegExp regExp = RegExp(pattern);
@@ -45,5 +45,40 @@ String? validatePhoneNumber(String? value) {
   }
   return null;
 }
+String? validateDateNotInFuture(String? value) {
+  if (value == null || value.isEmpty) {
+    return 'Este campo es obligatorio';
+  }
+
+  // Intentar analizar la fecha ingresada con formato DD/MM/YYYY
+  try {
+    List<String> parts = value.split('/');
+    if (parts.length == 3) {
+      int day = int.parse(parts[0]);
+      int month = int.parse(parts[1]);
+      int year = int.parse(parts[2]);
+
+      // Validar si la fecha es válida
+      if (month < 1 || month > 12 || day < 1 || day > 31) {
+        return 'Por favor ingrese una fecha válida';
+      }
+
+      DateTime inputDate = DateTime(year, month, day);
+      DateTime today = DateTime.now();
+
+      if (inputDate.isAfter(today)) {
+        return 'La fecha no puede ser en el futuro';
+      }
+    } else {
+      return 'Por favor ingrese una fecha válida en formato DD/MM/YYYY';
+    }
+  } catch (e) {
+    return 'Por favor ingrese una fecha válida';
+  }
+
+  return null;
+}
+
+
 
 
