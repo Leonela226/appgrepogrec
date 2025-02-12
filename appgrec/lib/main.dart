@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:appgrec/src/providers/auth.dart'; // Asegúrate de importar el proveedor
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart'; // Importa provider para usar ChangeNotifierProvider
 
 void main() async {
@@ -24,6 +25,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    ScreenUtil.init(context, designSize: Size(375, 812));  // Tamaño base de diseño
     return ChangeNotifierProvider(
       create: (context) => AuthProvider(), // Aquí se agrega el proveedor
       child: MaterialApp(
