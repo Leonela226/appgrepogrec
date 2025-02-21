@@ -21,7 +21,6 @@ class LoginPageState extends State<LoginPage> {
   final _emailFocusNode = FocusNode();
   final _passwordFocusNode = FocusNode();
 
-  // Función para manejar el inicio de sesión
   void _login(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -31,15 +30,22 @@ class LoginPageState extends State<LoginPage> {
       );
 
       if (error != null) {
-        // Si hay un error, mostrar un mensaje
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error), backgroundColor: Colors.red),
-        );
+        _showSnackBar(error);
       } else {
-        // Si el login es exitoso, redirigir a la pantalla de inicio
         Navigator.pushReplacementNamed(context, Routes.home);
       }
     }
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: const TextStyle(color: Colors.white)),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 3),
+      ),
+    );
   }
 
   @override
@@ -54,13 +60,12 @@ class LoginPageState extends State<LoginPage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Campo para el correo electrónico
                 CustomTextFormField(
                   labelText: 'Correo Electrónico',
                   icon: Icons.email,
                   keyboardType: TextInputType.emailAddress,
                   controller: _emailController,
-                  focusNode: _emailFocusNode, // Asignar FocusNode
+                  focusNode: _emailFocusNode,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Por favor ingresa tu correo electrónico.';
@@ -71,14 +76,13 @@ class LoginPageState extends State<LoginPage> {
                     FocusScope.of(context).requestFocus(_passwordFocusNode);
                   },
                 ),
-                SizedBox(height: 16),
-                // Campo para la contraseña
+                const SizedBox(height: 16),
                 CustomTextFormField(
                   labelText: 'Contraseña',
                   icon: Icons.lock,
                   obscureText: true,
                   controller: _passwordController,
-                  focusNode: _passwordFocusNode, // Asignar FocusNode
+                  focusNode: _passwordFocusNode,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Por favor ingresa tu contraseña.';
@@ -86,14 +90,13 @@ class LoginPageState extends State<LoginPage> {
                     return null;
                   },
                   onFieldSubmitted: (_) {
-                    FocusScope.of(context).unfocus();    // Cierra el teclado cuando se termina el formulario
+                    FocusScope.of(context).unfocus();
                   },
                 ),
-                SizedBox(height: 24),
-                // Botón de inicio de sesión
+                const SizedBox(height: 24),
                 CustomButton(
                   text: 'Iniciar Sesión',
-                  onPressed: () => _login(context), // Llamar la función _login al presionar
+                  onPressed: () => _login(context),
                 ),
               ],
             ),
