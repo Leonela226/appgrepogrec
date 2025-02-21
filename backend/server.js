@@ -1,29 +1,26 @@
-require("dotenv").config(); // Cargar variables de entorno desde .env
+require("dotenv").config(); // Cargar variables de entorno al inicio
+
 const express = require("express");
+const cors = require("cors"); // Importar cors
+const sequelize = require("./config/database");
+const authRoutes = require("./routes/routes"); // Importas las rutas
+
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
-// Importar la configuración de Sequelize
-const sequelize = require("./config/database"); // configuración de Sequelize en config/database.js
-
+// Middleware global
 app.use(express.json());
+app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
 
-// Ruta de prueba para verificar que la API está funcionando
-app.get("/", (req, res) => {
-  res.send("API funcionando correctamente");
-});
+// Rutas
+app.use('/api', authRoutes); // Aquí aplicas las rutas relacionadas con la API
 
-// Conectar la base de datos MySQL con Sequelize
-sequelize
-  .authenticate() // Verificar la conexión
-  .then(() => {
-    console.log("Conexión a la base de datos establecida correctamente.");
-  })
-  .catch((err) => {
-    console.error("No se pudo conectar a la base de datos:", err);
-  });
+// Conectar con la base de datos y sincronizar
+sequelize.sync()
+  .then(() => console.log("Conectado a la base de datos y sincronizado"))
+  .catch((err) => console.error("Error al conectar a la DB:", err));
 
-// Iniciar el servidor
+// Iniciar servidor
 app.listen(port, () => {
-  console.log(`Servidor corriendo en http://localhost:${port}`);
+  console.log(`🚀 Servidor corriendo en http://localhost:${port}`);
 });

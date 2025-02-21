@@ -10,8 +10,8 @@ const sequelize = new Sequelize(
     host: process.env.DB_HOST,
     dialect: 'mysql',
     port: 3306,  // Puerto de MySQL
-    logging: () => {},  // Función vacía para evitar el log
+    logging: console.log  // Muestra consultas SQL en consola
   }
 );
 
-module.exports = sequelize;
+module.exports = sequelize; // Exportación corregida
