@@ -1,3 +1,5 @@
+import 'package:appgrec/src/validators/form_validators.dart';
+import 'package:appgrec/src/widgets/custom_appbar.dart';
 import 'package:appgrec/src/widgets/custom_button.dart';
 import 'package:appgrec/src/widgets/custom_text_form_field.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +21,29 @@ class RegisterPageState extends State<RegisterPage> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _dateBirthController = TextEditingController();
 
+  // Crear FocusNode para cada campo de texto
+  final _nameFocusNode = FocusNode();
+  final _emailFocusNode = FocusNode();
+  final _passwordFocusNode = FocusNode();
+  final _phoneFocusNode = FocusNode();
+  final _dateBirthFocusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _phoneController.dispose();
+    _dateBirthController.dispose();
+
+    _nameFocusNode.dispose();
+    _emailFocusNode.dispose();
+    _passwordFocusNode.dispose();
+    _phoneFocusNode.dispose();
+    _dateBirthFocusNode.dispose();
+    super.dispose();
+  }
+
   Future<void> _selectDate(BuildContext context) async {
     DateTime currentDate = DateTime.now();
     final DateTime? picked = await showDatePicker(
@@ -29,21 +54,18 @@ class RegisterPageState extends State<RegisterPage> {
     );
 
     if (picked != null) {
-      // Formateamos la fecha seleccionada al formato DD/MM/YYYY
-      String formattedDate = "${picked.day.toString().padLeft(2, '0')}/"
-          "${picked.month.toString().padLeft(2, '0')}/"
-          "${picked.year}";
-
+      // Formateamos la fecha en formato YYYY-MM-DD (para el backend)
+      String formattedDate = "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
       _dateBirthController.text = formattedDate;
     }
   }
 
+  bool _isPasswordObscure = true; // Controla la visibilidad de la contraseña
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Registro de Usuario'),
-      ),
+      appBar: const CustomAppBar(),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -54,11 +76,10 @@ class RegisterPageState extends State<RegisterPage> {
                 labelText: 'Nombre',
                 icon: Icons.person,
                 controller: _nameController,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor ingresa tu nombre';
-                  }
-                  return null;
+                focusNode: _nameFocusNode,
+                validator: validateUsername,
+                onFieldSubmitted: (_) {
+                  FocusScope.of(context).requestFocus(_emailFocusNode);
                 },
               ),
               const SizedBox(height: 16),
@@ -67,29 +88,34 @@ class RegisterPageState extends State<RegisterPage> {
                 icon: Icons.email,
                 keyboardType: TextInputType.emailAddress,
                 controller: _emailController,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor ingresa tu correo electrónico';
-                  } else if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value)) {
-                    return 'Por favor ingresa un correo válido';
-                  }
-                  return null;
+                focusNode: _emailFocusNode,
+                validator: validateEmail,
+                onFieldSubmitted: (_) {
+                  FocusScope.of(context).requestFocus(_passwordFocusNode);
                 },
               ),
               const SizedBox(height: 16),
               CustomTextFormField(
                 labelText: 'Contraseña',
                 icon: Icons.lock,
-                obscureText: true,
+                obscureText: _isPasswordObscure, // Cambia el estado de la contraseña
                 controller: _passwordController,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor ingresa una contraseña';
-                  } else if (value.length < 8) {
-                    return 'La contraseña debe tener al menos 8 caracteres';
-                  }
-                  return null;
+                focusNode: _passwordFocusNode,
+                validator: validatePassword,
+                onFieldSubmitted: (_) {
+                  FocusScope.of(context).requestFocus(_phoneFocusNode);
                 },
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _isPasswordObscure ? Icons.visibility : Icons.visibility_off,
+                    color: Colors.black,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isPasswordObscure = !_isPasswordObscure; // Cambia el estado
+                    });
+                  },
+                ),
               ),
               const SizedBox(height: 16),
               CustomTextFormField(
@@ -97,28 +123,25 @@ class RegisterPageState extends State<RegisterPage> {
                 icon: Icons.phone,
                 keyboardType: TextInputType.phone,
                 controller: _phoneController,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor ingresa tu número de teléfono';
-                  }
-                  return null;
+                focusNode: _phoneFocusNode,
+                validator: validatePhoneNumber,
+                maxLength: 8, // Limitar a 8 caracteres
+                onFieldSubmitted: (_) {
+                  FocusScope.of(context).requestFocus(_dateBirthFocusNode);
                 },
               ),
               const SizedBox(height: 16),
               GestureDetector(
-                onTap: () => _selectDate(context),  // Abre el selector de fecha
+                onTap: () => _selectDate(context),
                 child: AbsorbPointer(
                   child: CustomTextFormField(
                     labelText: 'Fecha de Nacimiento',
                     icon: Icons.calendar_today,
                     controller: _dateBirthController,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Por favor ingresa tu fecha de nacimiento';
-                      } else if (!RegExp(r'\d{2}/\d{2}/\d{4}').hasMatch(value)) {
-                        return 'Formato incorrecto. Usa DD/MM/YYYY';
-                      }
-                      return null;
+                    focusNode: _dateBirthFocusNode,
+                    validator: validateDateOfBirth,
+                    onFieldSubmitted: (_) {
+                      FocusScope.of(context).unfocus();
                     },
                   ),
                 ),
@@ -134,10 +157,12 @@ class RegisterPageState extends State<RegisterPage> {
                         String password = _passwordController.text.trim();
                         String name = _nameController.text.trim();
                         String phoneNumber = _phoneController.text.trim();
-                        String dateBirth = _dateBirthController.text.trim();
+                        String dateBirth = _dateBirthController.text.trim(); // Ya en formato YYYY-MM-DD
 
                         // Llamada a AuthProvider para registrar el usuario
-                        String? result = await authProvider.registerWithEmail(email, password);
+                        String? result = await authProvider.registerWithEmail(
+                          email, password, name, phoneNumber, dateBirth
+                        );
 
                         if (mounted) {
                           if (result == null) {
