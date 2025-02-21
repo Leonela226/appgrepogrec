@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class CustomTextFormField extends StatelessWidget {
   final String labelText;
@@ -9,8 +10,8 @@ class CustomTextFormField extends StatelessWidget {
   final String? Function(String?)? validator;
   final int? maxLength; // Agregado para limitar la longitud de caracteres
   final FocusNode? focusNode; // Para manejar el enfoque
-
-
+  final ValueChanged<String>? onFieldSubmitted; // Agregado para manejar la acción al enviar el campo
+  final Widget? suffixIcon; // Agregar parámetro para el ícono adicional
 
   const CustomTextFormField({
     super.key,
@@ -21,8 +22,9 @@ class CustomTextFormField extends StatelessWidget {
     required this.controller,
     this.validator,
     this.maxLength, // Aceptar el límite de longitud
-    this.focusNode, required Null Function(dynamic _) onFieldSubmitted, // Agregar parámetro para FocusNode
-
+    this.focusNode, // Para manejar el enfoque
+    this.onFieldSubmitted, // Aceptar el parámetro para la acción de enviar
+    this.suffixIcon, // Recibir el parámetro de ícono adicional
   });
 
   @override
@@ -49,6 +51,7 @@ class CustomTextFormField extends StatelessWidget {
               color: Colors.black,
               size: screenWidth * 0.06, // Tamaño del ícono adaptativo
             ),
+            suffixIcon: suffixIcon, // Aquí agregamos el 'suffixIcon'
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
               borderSide: const BorderSide(color: Color(0xFFFF0000)),
@@ -61,6 +64,7 @@ class CustomTextFormField extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
               borderSide: const BorderSide(color: Color(0xFFFF0000)),
             ),
+            counterText: '', // Esto eliminará el texto del contador
           ),
           style: TextStyle(
             color: Colors.black,
@@ -70,6 +74,8 @@ class CustomTextFormField extends StatelessWidget {
           validator: validator,
           maxLength: maxLength,
           focusNode: focusNode, // Asignar el FocusNode
+          onFieldSubmitted: onFieldSubmitted, // Asignar la función de submit
+          maxLengthEnforcement: maxLength == null ? null : MaxLengthEnforcement.enforced, // Evita el contador visible para el campo de teléfono
         ),
       ),
     );
