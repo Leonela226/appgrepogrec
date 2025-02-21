@@ -90,7 +90,7 @@ class LoginPageState extends State<LoginPage> {
                     return null;
                   },
                   onFieldSubmitted: (_) {
-                    FocusScope.of(context).unfocus();
+                    _login(context); // Llamar al login al presionar Enter
                   },
                 ),
                 const SizedBox(height: 24),
