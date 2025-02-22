@@ -1,3 +1,4 @@
+import 'package:appgrec/src/providers/forgot_password.dart';
 import 'package:appgrec/src/views/client/home.dart';
 import 'package:appgrec/src/views/welcome_screen.dart';
 import 'package:flutter/material.dart';
@@ -9,5 +10,6 @@ Map<String, Widget Function(BuildContext)> appRoutes = {
   Routes.login: (_) => const LoginPage(),
   Routes.register: (_) => const RegisterPage(),
   Routes.home: (_) => const HomeScreen(),
-  Routes.welcome: (_) => const WelcomeScreen()
+  Routes.welcome: (_) => const WelcomeScreen(),
+  Routes.forgotPassword: (_) => const ForgotPasswordPage()
 };

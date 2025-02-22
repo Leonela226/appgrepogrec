@@ -5,4 +5,5 @@ class Routes {
   static const String register = '/register';
   static const String home = '/home';
   static const String welcome = '/welcome';
+  static const String forgotPassword = '/forgot-password'; // Nueva ruta
 }
