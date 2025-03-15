@@ -1,4 +1,3 @@
-
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -62,8 +61,6 @@ exports.createCarouselImage = async (req, res) => {
     const baseSUrl = process.env.FRONTEND_URL; 
     const url_carousel_image = `${baseSUrl}/uploads/carousel_images/${req.file.filename}`;
 
-   // const url_carousel_image = `/uploads/carousel_images/${req.file.filename}`;
-
     try {
       // Guardar la URL de la imagen en la base de datos
       const newCarouselImage = await Carousel.create({
@@ -71,6 +68,10 @@ exports.createCarouselImage = async (req, res) => {
         title_carousel_image,
         description_carousel_image
       });
+
+      // Emitir evento a WebSocket para actualizar a los clientes en tiempo real
+      const io = req.app.get("io");
+      io.emit("carouselUpdated", { message: "Nueva imagen en el carrusel", data: newCarouselImage });
 
       return res.status(201).json({
         message: "Imagen del carrusel creada correctamente.",
@@ -116,4 +117,3 @@ exports.getCarouselImageById = async (req, res) => {
     return res.status(500).json({ message: "Error al obtener la imagen.", error: error.message });
   }
 };
-

@@ -24,6 +24,10 @@ const User = sequelize.define("User", {
       isEmail: true, // Validación para asegurar que es un correo electrónico
     },
   },
+  profile_photo_url: {
+    type: DataTypes.STRING,
+    allowNull: null,
+  },
   phone_number: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -39,18 +43,15 @@ const User = sequelize.define("User", {
   id_rol: {
     type: DataTypes.INTEGER,
     allowNull: false,
-  },
-  createdAt: {
-    type: DataTypes.DATE,
-    field: "created_at", // 👈 Mapea `createdAt` a `created_at`
-  },
-  updatedAt: {
-    type: DataTypes.DATE,
-    field: "updated_at", // 👈 Mapea `updatedAt` a `updated_at`
+    validate: {
+      isIn: [[1, 2, 3]], // Validación para roles permitidos
+    },
   },
 }, {
-  timestamps: true, // Sequelize manejará los timestamps
-  tableName: "users", // Nombre real de la tabla en la BD
+  timestamps: true,          // Sequelize manejará los timestamps
+  createdAt: "created_at",   // Mapea `createdAt` a `created_at`
+  updatedAt: "updated_at",   // Mapea `updatedAt` a `updated_at`
+  tableName: "users",        // Nombre real de la tabla en la BD
 });
 
 module.exports = User;

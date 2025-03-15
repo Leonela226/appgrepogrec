@@ -2,6 +2,7 @@ const User = require("../models/user_model");
 const admin = require("../config/firebase");
 const sequelize = require('../config/database'); // Importación corregida
 
+// Ruta para registrar un usuario
 exports.registerUser = async (req, res) => {
   const t = await sequelize.transaction(); // Iniciar una transacción
 
@@ -55,3 +56,5 @@ exports.registerUser = async (req, res) => {
     res.status(500).json({ error: "Error interno del servidor" });
   }
 };
+
+// Ruta para obtener el nombre del usuario basado en firebase_uid
