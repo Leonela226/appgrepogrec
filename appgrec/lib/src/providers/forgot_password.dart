@@ -1,7 +1,7 @@
 import 'package:appgrec/src/validators/form_validators.dart';
 import 'package:appgrec/src/widgets/custom_appbar.dart';
 import 'package:appgrec/src/widgets/custom_text_form_field.dart';
-import 'package:appgrec/src/widgets/custom_button.dart';
+import 'package:appgrec/src/widgets/custom_buttons_prim.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:appgrec/src/providers/auth.dart';
@@ -20,6 +20,7 @@ class ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
   // Método para mostrar el SnackBar con color personalizado
   void _showSnackBar(String message, {Color backgroundColor = Colors.red}) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message, style: const TextStyle(color: Colors.white)),
@@ -44,15 +45,17 @@ class ForgotPasswordPageState extends State<ForgotPasswordPage> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     String? error = await authProvider.resetPassword(email);  // Llamamos a resetPassword
 
+    if (!mounted) return; // Verifica si el widget sigue montado
+
     setState(() {
       _isLoading = false;  // Desactiva el estado de carga
     });
 
     if (error == null) {
-      _showSnackBar('Correo de recuperación enviado', backgroundColor: Colors.green); // SnackBar de éxito en verde
+      _showSnackBar('Correo de recuperación enviado', backgroundColor: Colors.green);
       Navigator.pushReplacementNamed(context, '/login'); // Redirige a la página de login
     } else {
-      _showSnackBar('Error: $error'); // SnackBar de error en rojo
+      _showSnackBar('Error: $error');
     }
   }
 
@@ -70,9 +73,10 @@ class ForgotPasswordPageState extends State<ForgotPasswordPage> {
               // Encabezado "Recuperación de Contraseña"
               Text(
                 'Recuperación de Contraseña',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 24,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600, // SemiBold
+                  fontFamily: 'TitilliumWeb', // Tipo de letra TitilliumWeb-SemiBold
                   color: Colors.black,
                 ),
                 textAlign: TextAlign.center, // Centra el texto
@@ -86,7 +90,6 @@ class ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 icon: Icons.email,
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
-                  // Usamos la función de validación para el correo
                   return validateEmail(value);
                 },
               ),
@@ -96,7 +99,7 @@ class ForgotPasswordPageState extends State<ForgotPasswordPage> {
               CustomButton(
                 text: _isLoading ? 'Enviando...' : 'Enviar Correo',
                 onPressed: _isLoading 
-                  ? (){}  // Al no estar cargando, simplemente no hace nada (vacío)
+                  ? (){}  // Al estar cargando, no hace nada
                   : () {
                       _sendResetEmail();  
                     },

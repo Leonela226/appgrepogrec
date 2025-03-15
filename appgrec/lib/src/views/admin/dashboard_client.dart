@@ -1,3 +1,4 @@
+import 'package:appgrec/src/widgets/custom_buttons_sec.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -30,7 +31,9 @@ class DashboardAdminClientScreenState extends State<DashboardAdminClientScreen> 
   Future<void> fetchCarouselImages() async {
     final String? baseUrl = dotenv.env['FRONTEND_URL'];
     if (baseUrl == null || baseUrl.isEmpty) {
-      CustomSnackbar.showSnackBar(context, 'Error: FRONTEND_URL no está definida.');
+      if (mounted) {
+        CustomSnackbar.showSnackBar(context, 'Error: FRONTEND_URL no está definida.');
+      }
       return;
     }
 
@@ -38,14 +41,18 @@ class DashboardAdminClientScreenState extends State<DashboardAdminClientScreen> 
       final response = await http.get(Uri.parse('$baseUrl/api/carousel/all'));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        setState(() {
-          imageUrls = List<String>.from(data['data'].map((item) => item['url_carousel_image']));
-        });
+        if (mounted) {
+          setState(() {
+            imageUrls = List<String>.from(data['data'].map((item) => item['url_carousel_image']));
+          });
+        }
       } else {
         throw Exception('Error al cargar las imágenes');
       }
     } catch (e) {
-      CustomSnackbar.showSnackBar(context, 'Error al cargar las imágenes: $e');
+      if (mounted) {
+        CustomSnackbar.showSnackBar(context, 'Error al cargar las imágenes: $e');
+      }
     }
   }
 
@@ -54,15 +61,17 @@ class DashboardAdminClientScreenState extends State<DashboardAdminClientScreen> 
     final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
 
     if (pickedFile == null) {
-      CustomSnackbar.showSnackBar(context, 'No se seleccionó ninguna imagen');
+      if (mounted) {
+        CustomSnackbar.showSnackBar(context, 'No se seleccionó ninguna imagen');
+      }
       return;
     }
 
-    print("Imagen seleccionada: ${pickedFile.path}"); // Verifica la imagen seleccionada
-
     final String? backendUrl = dotenv.env['FRONTEND_URL']; 
     if (backendUrl == null || backendUrl.isEmpty) {
-      CustomSnackbar.showSnackBar(context, 'Error: FRONTEND_URL no está definida.');
+      if (mounted) {
+        CustomSnackbar.showSnackBar(context, 'Error: FRONTEND_URL no está definida.');
+      }
       return;
     }
 
@@ -72,11 +81,10 @@ class DashboardAdminClientScreenState extends State<DashboardAdminClientScreen> 
       await http.MultipartFile.fromPath(
         'carousel_image',
         pickedFile.path,
-        contentType: MediaType('image', 'jpeg'), // Asegura que se envíe como image/jpeg
+        contentType: MediaType('image', 'jpeg'),
       ),
     );
 
-    // Agregar los otros campos requeridos
     request.fields['title_carousel_image'] = 'Imagen';
     request.fields['description_carousel_image'] = 'Imagen subida desde Flutter';
 
@@ -88,17 +96,21 @@ class DashboardAdminClientScreenState extends State<DashboardAdminClientScreen> 
         var jsonResponse = json.decode(responseBody);
         String newImageUrl = jsonResponse['data']['url_carousel_image'];
 
-        setState(() {
-          imageUrls.add(newImageUrl);
-        });
-
-        CustomSnackbar.showSnackBar(context, 'Imagen subida correctamente');
+        if (mounted) {
+          setState(() {
+            imageUrls.add(newImageUrl);
+          });
+          CustomSnackbar.showSnackBar(context, 'Imagen subida correctamente');
+        }
       } else {
-        print("Error en la respuesta del backend: $responseBody");
-        CustomSnackbar.showSnackBar(context, 'Error al subir la imagen: ${response.statusCode}');
+        if (mounted) {
+          CustomSnackbar.showSnackBar(context, 'Error al subir la imagen: ${response.statusCode}');
+        }
       }
     } catch (e) {
-      CustomSnackbar.showSnackBar(context, 'Error en la subida: $e');
+      if (mounted) {
+        CustomSnackbar.showSnackBar(context, 'Error en la subida: $e');
+      }
     }
   }
 
@@ -121,11 +133,27 @@ class DashboardAdminClientScreenState extends State<DashboardAdminClientScreen> 
             ),
           ),
           CustomCarousel(imageUrls: imageUrls), // Pasando las URLs al carrusel
+          SizedBox(height: 20), // Añadimos un espacio entre el carrusel y los botones
           Padding(
             padding: const EdgeInsets.all(5.0),
-            child: ElevatedButton(
-              onPressed: _pickImage, // Llamar a la función de selección de imagen
-              child: const Text('Agregar'),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Botón "Agregar"
+                CustomBottonSec(
+                  text: 'Agregar',
+                  onPressed: _pickImage, // Llamar a la función de selección de imagen
+                ),
+                SizedBox(width: 10), // Espacio entre los botones
+                // Botón "Editar"
+                CustomBottonSec(
+                  text: 'Editar',
+                  onPressed: () {
+                    // Acción del botón "Editar"
+                  },
+
+                ),
+              ],
             ),
           ),
         ],

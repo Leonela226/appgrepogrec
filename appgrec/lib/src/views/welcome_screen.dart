@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:appgrec/src/routes/routes.dart';
 import 'package:flutter/material.dart';
-import 'package:appgrec/src/widgets/custom_button.dart';
+import 'package:appgrec/src/widgets/custom_buttons_prim.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -47,7 +47,8 @@ class WelcomeScreen extends StatelessWidget {
                     'Bienvenido a tu App Grec',
                     style: TextStyle(
                       fontSize: 30,
-                      fontFamily: 'TitilliumWeb-SemiBold',
+                      fontFamily: 'TitilliumWeb', // TitilliumWeb-SemiBold
+                      fontWeight: FontWeight.w600, // SemiBold
                       color: Colors.black,
                       shadows: [
                         Shadow(
@@ -68,7 +69,8 @@ class WelcomeScreen extends StatelessWidget {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 16,
-                        fontFamily: 'TitilliumWeb-Regular',
+                        fontFamily: 'TitilliumWeb', // TitilliumWeb-Regular
+                        fontWeight: FontWeight.w400, // Regular
                         color: Colors.black,
                         shadows: [
                           Shadow(
@@ -95,7 +97,7 @@ class WelcomeScreen extends StatelessWidget {
                   CustomButton(
                     text: 'Registrarse',
                     onPressed: () {
-                     Navigator.pushNamed(context, Routes.register);
+                      Navigator.pushNamed(context, Routes.register);
                     },
                   ),
                 ],

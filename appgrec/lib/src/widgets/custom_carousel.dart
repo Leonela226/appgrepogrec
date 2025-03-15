@@ -23,10 +23,8 @@ class CustomCarouselState extends State<CustomCarousel> {
 
     return Column(
       children: [
-        // Espaciado entre texto y carrusel
-        const SizedBox(height: 20),
+        const SizedBox(height: 20), // Espaciado antes del carrusel
 
-        // Carrusel de imágenes o icono de imagen rota si no hay imágenes
         isEmpty
             ? SizedBox(
                 height: carouselHeight,
@@ -36,37 +34,49 @@ class CustomCarouselState extends State<CustomCarousel> {
               )
             : CarouselSlider(
                 items: widget.imageUrls.map((imageUrl) {
-                  print('Cargando imagen desde la URL: $imageUrl'); // Depuración para verificar la URL
-                  return ClipRRect(
-                    borderRadius: BorderRadius.circular(15),
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        Image.network(
-                          imageUrl,
-                          fit: BoxFit.cover,
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return const Center(child: CircularProgressIndicator());
-                          },
-                          errorBuilder: (context, error, stackTrace) {
-                            print('Error al cargar la imagen: $error'); // Depuración para errores
-                            return const Center(
-                              child: Icon(Icons.broken_image, size: 50, color: Colors.grey),
-                            );
-                          },
-                        ),
-                        Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(15),
-                            gradient: LinearGradient(
-                              begin: Alignment.bottomCenter,
-                              end: Alignment.center,
-                              colors: [Colors.black38, Colors.transparent], // Reducción de opacidad
-                            ),
-                          ),
+                  return Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 5),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(15),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2), // Sombra más sutil
+                          blurRadius: 9, // Difuminado más suave
+                          spreadRadius: 1, // Expansión ligera
+                          offset: const Offset(0, 4), // Sombra baja ligeramente
                         ),
                       ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(15),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Image.network(
+                            imageUrl,
+                            fit: BoxFit.cover,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return const Center(child: CircularProgressIndicator());
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Center(
+                                child: Icon(Icons.broken_image, size: 50, color: Colors.grey),
+                              );
+                            },
+                          ),
+                          // Gradiente para mejorar visibilidad sin afectar la sombra
+                          Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.bottomCenter,
+                                end: Alignment.center,
+                                colors: [Colors.black26, Colors.transparent],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 }).toList(),
@@ -84,10 +94,8 @@ class CustomCarouselState extends State<CustomCarousel> {
                 ),
               ),
 
-        // Espaciado entre carrusel e indicadores
-        const SizedBox(height: 20),
+        const SizedBox(height: 20), // Espaciado después del carrusel
 
-        // Indicadores circulares (solo si hay imágenes)
         if (!isEmpty)
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -98,7 +106,7 @@ class CustomCarouselState extends State<CustomCarousel> {
                 margin: const EdgeInsets.symmetric(horizontal: 4),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: _currentIndex == index ? Colors.blueAccent : Colors.grey,
+                  color: _currentIndex == index ? const Color(0xFFFF0000) : const Color(0xFF434244),
                 ),
               );
             }),
