@@ -11,6 +11,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     double screenHeight = MediaQuery.of(context).size.height;
 
     return AppBar(
+      automaticallyImplyLeading: false, // desactiva el boton de retoceso automatico
       backgroundColor: Colors.white,
       elevation: 4, // Sombra para destacar el AppBar
       title: Row(

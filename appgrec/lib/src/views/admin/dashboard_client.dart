@@ -32,7 +32,7 @@ class DashboardAdminClientScreenState extends State<DashboardAdminClientScreen> 
     final String? baseUrl = dotenv.env['FRONTEND_URL'];
     if (baseUrl == null || baseUrl.isEmpty) {
       if (mounted) {
-        CustomSnackbar.showSnackBar(context, 'Error: FRONTEND_URL no está definida.');
+        CustomSnackbar.showError(context, 'Error: FRONTEND_URL no está definida.');
       }
       return;
     }
@@ -51,7 +51,7 @@ class DashboardAdminClientScreenState extends State<DashboardAdminClientScreen> 
       }
     } catch (e) {
       if (mounted) {
-        CustomSnackbar.showSnackBar(context, 'Error al cargar las imágenes: $e');
+        CustomSnackbar.showError(context, 'Error al cargar las imágenes: $e');
       }
     }
   }
@@ -62,7 +62,7 @@ class DashboardAdminClientScreenState extends State<DashboardAdminClientScreen> 
 
     if (pickedFile == null) {
       if (mounted) {
-        CustomSnackbar.showSnackBar(context, 'No se seleccionó ninguna imagen');
+        CustomSnackbar.showWarning(context, 'No se seleccionó ninguna imagen');
       }
       return;
     }
@@ -70,7 +70,7 @@ class DashboardAdminClientScreenState extends State<DashboardAdminClientScreen> 
     final String? backendUrl = dotenv.env['FRONTEND_URL']; 
     if (backendUrl == null || backendUrl.isEmpty) {
       if (mounted) {
-        CustomSnackbar.showSnackBar(context, 'Error: FRONTEND_URL no está definida.');
+        CustomSnackbar.showError(context, 'Error: FRONTEND_URL no está definida.');
       }
       return;
     }
@@ -100,16 +100,16 @@ class DashboardAdminClientScreenState extends State<DashboardAdminClientScreen> 
           setState(() {
             imageUrls.add(newImageUrl);
           });
-          CustomSnackbar.showSnackBar(context, 'Imagen subida correctamente');
+          CustomSnackbar.showSuccess(context, 'Imagen subida correctamente');
         }
       } else {
         if (mounted) {
-          CustomSnackbar.showSnackBar(context, 'Error al subir la imagen: ${response.statusCode}');
+          CustomSnackbar.showError(context, 'Error al subir la imagen: ${response.statusCode}');
         }
       }
     } catch (e) {
       if (mounted) {
-        CustomSnackbar.showSnackBar(context, 'Error en la subida: $e');
+        CustomSnackbar.showError(context, 'Error en la subida: $e');
       }
     }
   }
