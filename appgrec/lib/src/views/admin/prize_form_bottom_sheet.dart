@@ -25,6 +25,13 @@ class PrizeFormBottomSheetState extends State<PrizeFormBottomSheet> {
   File? _imageFile;
   final ImagePicker _picker = ImagePicker();
 
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
   // Seleccionar imagen
   Future<void> _pickImage() async {
     final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
@@ -35,72 +42,57 @@ class PrizeFormBottomSheetState extends State<PrizeFormBottomSheet> {
     }
   }
 
-  // Función para subir el premio
-// Función para subir el premio
-Future<void> _uploadPrize() async {
-  if (_nameController.text.isEmpty || _descriptionController.text.isEmpty) {
-    CustomSnackbar.showWarning(context, 'Todos los campos son requeridos.');
-    return;
-  }
-
-  // Verifica si ya se han ingresado nombre y descripción, pero no se ha seleccionado una imagen
-  if (_nameController.text.isNotEmpty && _descriptionController.text.isNotEmpty && _imageFile == null) {
-    CustomSnackbar.showWarning(context, 'Imagen no seleccionada');
-    return;
-  }
-
-  final String? backendUrl = dotenv.env['FRONTEND_URL'];
-  if (backendUrl == null || backendUrl.isEmpty) {
-    CustomSnackbar.showError(context, 'Error: FRONTEND_URL no está definida.');
-    return;
-  }
-
-  var request = http.MultipartRequest('POST', Uri.parse('$backendUrl/api/prizes/create'));
-
-  request.fields['name_prize'] = _nameController.text;
-  request.fields['description_prize'] = _descriptionController.text;
-
-  if (_imageFile != null) {
-    print("Archivo a enviar: ${_imageFile!.path}");
-
-    // Usamos 'mime' para obtener el tipo MIME correcto
-    final mimeType = lookupMimeType(_imageFile!.path);
-    request.files.add(
-      await http.MultipartFile.fromPath(
-        'prize_image',
-        _imageFile!.path,
-        contentType: mimeType != null ? MediaType.parse(mimeType) : null,
-      ),
-    );
-  } else {
-    print("No se ha seleccionado ninguna imagen.");
-  }
-
-  try {
-    var response = await request.send();
-
-    // Obtener el cuerpo de la respuesta
-    var responseBody = await response.stream.bytesToString();
-    if (response.statusCode == 201) {
-      var jsonResponse = json.decode(responseBody);
-      String newImageUrl = jsonResponse['data']['image_url'];
-
-      // Aquí puedes usar la URL de la imagen como necesites
-      print("URL de la imagen: $newImageUrl");
-
-      // Llamar a la función onSave con la nueva URL de la imagen
-      widget.onSave?.call(_nameController.text, _descriptionController.text, _imageFile);  // Llamar la función onSave
-
-      CustomSnackbar.showSuccess(context, 'Premio agregado correctamente.');
-      Navigator.of(context).pop(); // Cerrar modal después de éxito
-    } else {
-      CustomSnackbar.showError(context, 'Error al subir el premio: ${response.statusCode}');
+  // Función para crear el premio
+  Future<void> _createPrize() async {
+    if (_nameController.text.isEmpty || _descriptionController.text.isEmpty) {
+      CustomSnackbar.showWarning(context, 'Todos los campos son requeridos.');
+      return;
     }
-  } catch (e) {
-    CustomSnackbar.showError(context, 'Error en la subida: $e');
-  }
-}
 
+    // Verifica si no se ha seleccionado una imagen
+    if (_imageFile == null) {
+      CustomSnackbar.showWarning(context, 'Imagen no seleccionada');
+      return;
+    }
+
+    final String? backendUrl = dotenv.env['FRONTEND_URL'];
+    if (backendUrl == null || backendUrl.isEmpty) {
+      CustomSnackbar.showError(context, 'Error: FRONTEND_URL no está definida.');
+      return;
+    }
+
+    var request = http.MultipartRequest('POST', Uri.parse('$backendUrl/api/prizes/create'));
+
+    request.fields['name_prize'] = _nameController.text;
+    request.fields['description_prize'] = _descriptionController.text;
+
+    if (_imageFile != null) {
+      final mimeType = lookupMimeType(_imageFile!.path);
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'prize_image',
+          _imageFile!.path,
+          contentType: mimeType != null ? MediaType.parse(mimeType) : null,
+        ),
+      );
+    }
+
+    try {
+      var response = await request.send();
+      var responseBody = await response.stream.bytesToString();
+
+      if (response.statusCode == 201) {
+        widget.onSave?.call(_nameController.text, _descriptionController.text, _imageFile);
+        CustomSnackbar.showSuccess(context, 'Premio agregado correctamente.');
+        Navigator.of(context).pop();
+      } else {
+        var jsonResponse = json.decode(responseBody);
+        CustomSnackbar.showError(context, jsonResponse['message']);
+      }
+    } catch (e) {
+      CustomSnackbar.showError(context, 'Error al crear el premio: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -115,7 +107,7 @@ Future<void> _uploadPrize() async {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
+                Text(
                   "Agregar Premio",
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
@@ -138,7 +130,6 @@ Future<void> _uploadPrize() async {
                   icon: Icons.card_giftcard,
                 ),
                 const SizedBox(height: 10),
-                // Aquí ajustamos el CustomTextFormField para la descripción
                 CustomTextFormField(
                   labelText: 'Descripción del Premio',
                   controller: _descriptionController,
@@ -157,7 +148,7 @@ Future<void> _uploadPrize() async {
                     ),
                     CustomBottonSec(
                       text: 'Agregar',
-                      onPressed: _uploadPrize,
+                      onPressed: _createPrize,
                     ),
                   ],
                 ),

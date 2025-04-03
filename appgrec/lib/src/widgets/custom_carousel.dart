@@ -40,7 +40,7 @@ class CustomCarouselState extends State<CustomCarousel> {
                       borderRadius: BorderRadius.circular(15),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2), // Sombra más sutil
+                          color: Color.fromRGBO(0, 0, 0, 0.2), // Usamos RGBA con el valor de opacidad
                           blurRadius: 9, // Difuminado más suave
                           spreadRadius: 1, // Expansión ligera
                           offset: const Offset(0, 4), // Sombra baja ligeramente
@@ -57,7 +57,9 @@ class CustomCarouselState extends State<CustomCarousel> {
                             fit: BoxFit.cover,
                             loadingBuilder: (context, child, loadingProgress) {
                               if (loadingProgress == null) return child;
-                              return const Center(child: CircularProgressIndicator());
+                              return const Center(child: CircularProgressIndicator(
+                                color: Color(0xFF434244),
+                              ));
                             },
                             errorBuilder: (context, error, stackTrace) {
                               return const Center(

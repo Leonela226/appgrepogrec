@@ -10,8 +10,11 @@ class Routes {
   static const String clientHome = '/client_home';
 
   static const String adminDashboard = '/admin_dashboard';
-  static const String dashboardAdminClient = '/admin_dashboard_client';  
+  static const String dashboardAdminClient = '/admin_dashboard_client';
+  static const String viewPrizesScreen = '/view_prizes';
+  static const String viewGiveawaysScreen = '/view_giveaways';
   //static const String moderadorDashboard = '/moderador_dasboard';
+
   
 
 }
