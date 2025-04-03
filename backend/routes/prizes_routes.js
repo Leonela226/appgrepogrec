@@ -11,8 +11,4 @@ router.get('/all', prizeController.getAllPrizes);
 // Ruta para obtener un premio por ID
 router.get('/get/:id', prizeController.getPrizeById);
 
-// Ruta para eliminar un premio por ID
-router.delete('/delete/:id', prizesController.deletePrizeById);
-
-
 module.exports = router;

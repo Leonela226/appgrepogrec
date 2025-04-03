@@ -58,8 +58,10 @@ exports.createCarouselImage = async (req, res) => {
     const { title_carousel_image, description_carousel_image } = req.body;
     
     // Generar la URL de la imagen
-    const baseSUrl = process.env.FRONTEND_URL; 
-    const url_carousel_image = `${baseSUrl}/uploads/carousel_images/${req.file.filename}`;
+    const url_carousel_image = req.file.filename;
+
+    //const baseSUrl = process.env.FRONTEND_URL; 
+    //const url_carousel_image = `${baseSUrl}/uploads/carousel_images/${req.file.filename}`;
 
     try {
       // Guardar la URL de la imagen en la base de datos

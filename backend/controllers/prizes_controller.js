@@ -40,7 +40,7 @@ const upload = multer({
 
 // Crear un nuevo premio
 exports.createPrize = async (req, res) => {
-  upload.single('prize_image')(req, res, async (err) => {  // Aquí estamos usando el middleware directamente
+  upload.single('prize_image')(req, res, async (err) => {
     if (err instanceof multer.MulterError) {
       return res.status(400).json({ message: "Error al cargar la imagen del premio.", error: err.message });
     } else if (err) {
@@ -60,11 +60,18 @@ exports.createPrize = async (req, res) => {
       return res.status(400).json({ message: "Faltan datos requeridos." });
     }
 
-    // Generar la URL de la imagen
-    const baseSUrl = process.env.FRONTEND_URL;
-    const image_url = `${baseSUrl}/uploads/prizes_images/${req.file.filename}`;
-
     try {
+      // Verifica si ya existe un premio con el mismo nombre
+      const existingPrize = await Prize.findOne({ where: { name_prize } });
+      if (existingPrize) {
+        return res.status(400).json({ message: "El premio ya existe." });
+      }
+
+      // Generar la URL de la imagen
+      const image_url = req.file.filename;
+      //const baseSUrl = process.env.FRONTEND_URL;
+      //const image_url = `${baseSUrl}/uploads/prizes_images/${req.file.filename}`;
+
       // Guardar el premio en la base de datos
       const newPrize = await Prize.create({ name_prize, description_prize, image_url });
 
@@ -78,6 +85,7 @@ exports.createPrize = async (req, res) => {
     }
   });
 };
+
 
 // Obtener todos los premios los nombres
 exports.getAllPrizes = async (req, res) => {
@@ -114,32 +122,4 @@ exports.getPrizeById = async (req, res) => {
   }
 };
 
-// Eliminar un premio por ID
-exports.deletePrizeById = async (req, res) => {
-  const { id } = req.params;
 
-  try {
-    // Buscar el premio por ID
-    const prize = await Prize.findByPk(id);
-
-    if (!prize) {
-      return res.status(404).json({ message: "Premio no encontrado." });
-    }
-
-    // Eliminar la imagen del premio del sistema de archivos
-    const imagePath = path.join(__dirname, '..', 'uploads', 'prizes_images', path.basename(prize.image_url));
-    if (fs.existsSync(imagePath)) {
-      fs.unlinkSync(imagePath);  // Eliminar la imagen
-    }
-
-    // Eliminar el premio de la base de datos
-    await prize.destroy();
-
-    return res.status(200).json({
-      message: "Premio eliminado correctamente."
-    });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Error al eliminar el premio.", error: error.message });
-  }
-};

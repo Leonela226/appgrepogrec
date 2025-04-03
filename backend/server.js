@@ -10,6 +10,7 @@ const authRoute = require("./routes/auth_route");
 const userRoleRoute = require("./routes/user_rol_route");
 const carouselRoute = require("./routes/carousel_images_route");
 const prizeRoute = require("./routes/prizes_routes");
+const giveawayRoute = require("./routes/view_giveaway_route");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -30,14 +31,16 @@ app.use(express.json());
 app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
 
 // Servir archivos estáticos (imágenes)
-app.use('/uploads/carousel_images', express.static(path.join(__dirname, 'uploads', 'carousel_images')));
-app.use('/uploads/prizes_images', express.static(path.join(__dirname, 'uploads', 'prizes_images')));
+//app.use('/uploads/carousel_images', express.static(path.join(__dirname, 'uploads', 'carousel_images')));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+//app.use('/uploads/prizes_images', express.static(path.join(__dirname, 'uploads', 'prizes_images')));
 
 // Rutas
 app.use('/api/auth', authRoute);
 app.use('/api/user', userRoleRoute);
 app.use('/api/carousel', carouselRoute);
 app.use('/api/prizes',prizeRoute); 
+app.use('/api/giveaways',giveawayRoute); 
 
 // WebSockets: escuchar conexiones
 io.on("connection", (socket) => {
