@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:appgrec/src/views/admin/giveaway_form_bottom_sheet.dart';
+import 'package:appgrec/src/views/admin/view_assign_prize.dart';
 import 'package:appgrec/src/widgets/custom_buttons_sec.dart';
 import 'package:appgrec/src/widgets/custom_text_form_field.dart';
 import 'package:flutter/material.dart';
@@ -96,18 +97,17 @@ class ViewGiveawaysScreenState extends State<ViewGiveawaysScreen> {
     });
   }
 
-// Método para mostrar el modal y actualizar la lista al crear un sorteo
-void _showCreateGiveawayModal() async {
-  final newGiveaway = await showDialog<Map<String, dynamic>>(
-    context: context,
-    builder: (context) => const GiveawayModal(),
-  );
+  // Método para mostrar el modal y actualizar la lista al crear un sorteo
+  void _showCreateGiveawayModal() async {
+    final newGiveaway = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (context) => const GiveawayModal(),
+    );
 
-  if (newGiveaway != null) {
-    await _loadGiveaways();  // Llama nuevamente a la función de carga y espera a que se complete
+    if (newGiveaway != null) {
+      await _loadGiveaways();  // Llama nuevamente a la función de carga y espera a que se complete
+    }
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -131,7 +131,7 @@ void _showCreateGiveawayModal() async {
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w600,
-                  fontFamily: 'TitilliumWeb',
+                  fontFamily: 'TitilliumWeb', // Fuente aplicada
                   color: Colors.black,
                 ),
               ),
@@ -151,7 +151,12 @@ void _showCreateGiveawayModal() async {
                             padding: EdgeInsets.symmetric(vertical: 20),
                             child: Text(
                               'Aún no hay sorteos creados',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey),
+                              style: TextStyle(
+                                fontSize: 18, 
+                                fontWeight: FontWeight.bold, 
+                                color: Colors.grey,
+                                fontFamily: 'TitilliumWeb', // Fuente aplicada
+                              ),
                             ),
                           ),
                         )
@@ -164,20 +169,61 @@ void _showCreateGiveawayModal() async {
                                 margin: const EdgeInsets.symmetric(vertical: 10),
                                 child: ListTile(
                                   contentPadding: const EdgeInsets.all(10),
-                                  leading: const Icon(Icons.card_giftcard),
                                   title: Text(
                                     giveaway['name'],
-                                    style: const TextStyle(fontFamily: 'TitilliumWeb'),
+                                    style: const TextStyle(
+                                      fontFamily: 'TitilliumWeb',
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 16 // Fuente aplicada
+                                    ),
                                   ),
-                                  subtitle: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text('Premios a sortear: ${giveaway['prize_count']}'),
-                                      Text('Inicio participación: ${giveaway['start_date']}'),
-                                      Text('Fin participación: ${giveaway['end_date']}'),
-                                      Text('Fecha del sorteo: ${giveaway['draw_date']}'),
-                                      Text('Estado: ${giveaway['status']}'),
-                                    ],
+                                  subtitle: DefaultTextStyle(
+                                    style: const TextStyle(
+                                      fontFamily: 'TitilliumWeb', // Fuente aplicada
+                                      fontWeight: FontWeight.w300,
+                                      fontSize: 14, // Tamaño común
+                                      color: Colors.black, // Color común
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text('Premios a sortear: ${giveaway['prize_count']}'),
+                                        Text('Inicio participación: ${giveaway['start_date']}'),
+                                        Text('Fin participación: ${giveaway['end_date']}'),
+                                        Text('Fecha del sorteo: ${giveaway['draw_date']}'),
+                                        Text('Estado: ${giveaway['status']}'),
+                                      ],
+                                    ),
+                                  ),
+                                  // Agregar botón centrado a la derecha
+                                  trailing: SizedBox(
+                                    width: 100, // Ajustar tamaño del botón
+                                    child: Align(
+                                      alignment: Alignment.centerRight,
+                                      child: ElevatedButton(
+                                        onPressed: () {
+                                          // Aquí va la lógica para asignar el premio
+                                           Navigator.push(
+                                            context,
+                                             MaterialPageRoute(builder: (context) => const AssignPrizeScreen()),  
+                                           );
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Color(0xFF434244), // Cambiar el color del fondo
+                                          textStyle: const TextStyle(
+                                            fontFamily: 'TitilliumWeb', // Cambiar la fuente del texto
+                                            fontWeight: FontWeight.w300, // Peso de la fuente
+                                            fontSize: 10,
+                                          ),
+                                          foregroundColor: Colors.white, // Asegurarse de que el texto sea blanco
+                                          padding: const EdgeInsets.symmetric(horizontal: 14), // Evita que el botón se expanda
+                                        ),
+                                        child: const Text(
+                                          'Asignar premio',
+                                          overflow: TextOverflow.ellipsis, // Asegura que el texto no se desborde
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               );
@@ -196,7 +242,10 @@ void _showCreateGiveawayModal() async {
                     ),
                     Text(
                       'Página $currentPage de $totalPages',
-                      style: const TextStyle(fontFamily: 'TitilliumWeb', fontWeight: FontWeight.w400),
+                      style: const TextStyle(
+                        fontFamily: 'TitilliumWeb', // Fuente aplicada
+                        fontWeight: FontWeight.w400,
+                      ),
                     ),
                     IconButton(
                       icon: const Icon(Icons.arrow_forward),
