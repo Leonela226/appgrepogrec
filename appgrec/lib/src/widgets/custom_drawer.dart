@@ -41,6 +41,28 @@ class CustomDrawer extends StatelessWidget {
             ),
           ),
           ListTile(
+            leading: Icon(Icons.leaderboard, color: Color(0xFF434244)),
+            title: Text(
+              'Panel Principal',
+              style: TextStyle(
+                fontFamily: 'TitilliumWeb',
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            onTap: () => _navigateIfNeeded(context, '/admin_dashboard'),
+          ),
+          ListTile(
+            leading: Icon(Icons.account_circle, color: Color(0xFF434244)),
+            title: Text(
+              'Perfil de Usuario',
+              style: TextStyle(
+                fontFamily: 'TitilliumWeb',
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            onTap: () => _navigateIfNeeded(context, '/'),
+          ),
+          ListTile(
             leading: Icon(Icons.dashboard, color: Color(0xFF434244)),
             title: Text(
               'Gestión de Vista del Cliente',
@@ -51,6 +73,17 @@ class CustomDrawer extends StatelessWidget {
             ),
             onTap: () => _navigateIfNeeded(context, '/admin_dashboard_client'),
           ),
+          ListTile(
+            leading: Icon(Icons.people, color: Color(0xFF434244)),
+            title: Text(
+              'Gestión de Usuarios',
+              style: TextStyle(
+                fontFamily: 'TitilliumWeb',
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            onTap: () => _navigateIfNeeded(context, '/'),
+          ),          
           ListTile(
             leading: Icon(Icons.card_giftcard, color: Color(0xFF434244)),
             title: Text(
@@ -63,7 +96,7 @@ class CustomDrawer extends StatelessWidget {
             onTap: () => _navigateIfNeeded(context, '/view_prizes'),
           ),
           ListTile(
-            leading: Icon(Icons.emoji_events, color: Color(0xFF434244)),
+            leading: Icon(Icons.edit, color: Color(0xFF434244)),
             title: Text(
               'Gestión de Sorteos',
               style: TextStyle(
@@ -73,6 +106,28 @@ class CustomDrawer extends StatelessWidget {
             ),
             onTap: () => _navigateIfNeeded(context, '/view_giveaways'),
           ),
+          ListTile(
+            leading: Icon(Icons.casino, color: Color(0xFF434244)),
+            title: Text(
+              'Realización de Sorteos',
+              style: TextStyle(
+                fontFamily: 'TitilliumWeb',
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            onTap: () => _navigateIfNeeded(context, '/'),
+          ),  
+          ListTile(
+            leading: Icon(Icons.emoji_events, color: Color(0xFF434244)),
+            title: Text(
+              'Listado de Ganadores',
+              style: TextStyle(
+                fontFamily: 'TitilliumWeb',
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            onTap: () => _navigateIfNeeded(context, '/'),
+          ),        
           Divider(),
           ListTile(
             leading: Icon(Icons.logout, color: Color(0xFFFF0000)),
