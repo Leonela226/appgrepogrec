@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:appgrec/src/views/admin/giveaway_form_bottom_sheet.dart';
 import 'package:appgrec/src/widgets/custom_buttons_sec.dart';
 import 'package:appgrec/src/widgets/custom_text_form_field.dart';
 import 'package:flutter/material.dart';
@@ -29,11 +30,12 @@ class ViewGiveawaysScreenState extends State<ViewGiveawaysScreen> {
     _loadGiveaways();
   }
 
+  // Carga los sorteos desde el servidor
   Future<void> _loadGiveaways() async {
     final String? baseUrl = dotenv.env['FRONTEND_URL'];
     if (baseUrl == null || baseUrl.isEmpty) {
       if (mounted) {
-        CustomSnackbar.showError(context, 'Error: BACKEND_URL no está definida.');
+        CustomSnackbar.showError(context, 'Error: FRONTEND_URL no está definida.');
       }
       return;
     }
@@ -46,6 +48,16 @@ class ViewGiveawaysScreenState extends State<ViewGiveawaysScreen> {
           if (data['data'] is List) {
             setState(() {
               giveaways = List<Map<String, dynamic>>.from(data['data']);
+              // Reemplazamos valores nulos por predeterminados
+              giveaways = giveaways.map((giveaway) {
+                return {
+                  'name': giveaway['name'] ?? 'Nombre no disponible',
+                  'start_date': giveaway['start_date'] ?? 'No disponible',
+                  'end_date': giveaway['end_date'] ?? 'No disponible',
+                  'draw_date': giveaway['draw_date'] ?? 'No disponible',
+                  'status': giveaway['status'] ?? 'No disponible',
+                };
+              }).toList();
               filteredGiveaways = List.from(giveaways);
               isLoading = false;
             });
@@ -69,6 +81,7 @@ class ViewGiveawaysScreenState extends State<ViewGiveawaysScreen> {
     }
   }
 
+  // Filtra los sorteos por nombre
   void _filterGiveaways(String query) {
     setState(() {
       if (query.isEmpty) {
@@ -83,14 +96,33 @@ class ViewGiveawaysScreenState extends State<ViewGiveawaysScreen> {
     });
   }
 
-  void _createGiveaway() {
-    // Aquí puedes agregar la lógica para crear un premio
-    CustomSnackbar.showSuccess(context, 'Función para agregar premio en desarrollo.');
+  // Método para mostrar el modal y actualizar la lista al crear un sorteo
+  void _showCreateGiveawayModal() async {
+    final newGiveaway = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (context) => const GiveawayModal(),
+    );
+
+    if (newGiveaway != null) {
+      setState(() {
+        // Eliminar la descripción antes de agregar el sorteo
+        final giveawayWithoutDescription = {
+          'name': newGiveaway['name'],
+          'start_date': newGiveaway['start_date'],
+          'end_date': newGiveaway['end_date'],
+          'draw_date': newGiveaway['draw_date'],
+          'status': newGiveaway['status'] ?? 'Activo',  // Utiliza el status del backend
+        };
+
+        giveaways.add(giveawayWithoutDescription);  // Agrega el nuevo sorteo a la lista
+        filteredGiveaways = List.from(giveaways);  // Actualiza el filtrado
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    int totalPages = (filteredGiveaways.length / itemsPerPage).ceil().clamp(1, double.infinity).toInt();
+    int totalPages = (filteredGiveaways.length / itemsPerPage).ceil();
     int startIndex = (currentPage - 1) * itemsPerPage;
     int endIndex = (startIndex + itemsPerPage).clamp(0, filteredGiveaways.length);
     List<Map<String, dynamic>> visibleGiveaways = filteredGiveaways.sublist(startIndex, endIndex);
@@ -184,10 +216,9 @@ class ViewGiveawaysScreenState extends State<ViewGiveawaysScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                // Aquí está el botón al final
                 CustomBottonSec(
-                  text: 'Agregar',
-                  onPressed: _createGiveaway,
+                  text: 'Agregar Sorteo',
+                  onPressed: _showCreateGiveawayModal, // Abre el modal para crear un sorteo
                 ),
               ],
             ),
@@ -197,3 +228,7 @@ class ViewGiveawaysScreenState extends State<ViewGiveawaysScreen> {
     );
   }
 }
+
+
+
+

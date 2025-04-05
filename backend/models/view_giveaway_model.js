@@ -16,16 +16,16 @@ const Giveaway = sequelize.define("Giveaway", {
         allowNull: true,
     },
     start_date_giveaway: {
-        type: DataTypes.DATE,
-        allowNull: true,
+        type: Sequelize.DATEONLY, // Asegura que solo se almacene la fecha
+        allowNull: false,
     },
     end_date_giveaway: {
-        type: DataTypes.DATE,
-        allowNull: true,
+        type: Sequelize.DATEONLY, // Asegura que solo se almacene la fecha
+        allowNull: false,
     },
     draw_date_giveaway: {
-        type: DataTypes.DATE,
-        allowNull: true,
+        type: Sequelize.DATEONLY, // Asegura que solo se almacene la fecha
+        allowNull: false,
     },
     status_giveaway: {
         type: DataTypes.ENUM('pendiente', 'activo', 'finalizado', 'cancelado'),
