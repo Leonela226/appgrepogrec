@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class GiveawayModal extends StatefulWidget {
+
   const GiveawayModal({super.key});
 
   @override

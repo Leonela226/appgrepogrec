@@ -48,14 +48,14 @@ class ViewGiveawaysScreenState extends State<ViewGiveawaysScreen> {
           if (data['data'] is List) {
             setState(() {
               giveaways = List<Map<String, dynamic>>.from(data['data']);
-              // Reemplazamos valores nulos por predeterminados
               giveaways = giveaways.map((giveaway) {
                 return {
-                  'name': giveaway['name'] ?? 'Nombre no disponible',
-                  'start_date': giveaway['start_date'] ?? 'No disponible',
-                  'end_date': giveaway['end_date'] ?? 'No disponible',
-                  'draw_date': giveaway['draw_date'] ?? 'No disponible',
-                  'status': giveaway['status'] ?? 'No disponible',
+                  'name': giveaway['name_giveaway'] ?? 'Nombre no disponible',
+                  'prize_count': giveaway['prize_count'] ?? 0,
+                  'start_date': giveaway['start_date_giveaway'] ?? 'No disponible',
+                  'end_date': giveaway['end_date_giveaway'] ?? 'No disponible',
+                  'draw_date': giveaway['draw_date_giveaway'] ?? 'No disponible',
+                  'status': giveaway['status_giveaway'] ?? 'No disponible',
                 };
               }).toList();
               filteredGiveaways = List.from(giveaways);
@@ -96,29 +96,18 @@ class ViewGiveawaysScreenState extends State<ViewGiveawaysScreen> {
     });
   }
 
-  // Método para mostrar el modal y actualizar la lista al crear un sorteo
-  void _showCreateGiveawayModal() async {
-    final newGiveaway = await showDialog<Map<String, dynamic>>(
-      context: context,
-      builder: (context) => const GiveawayModal(),
-    );
+// Método para mostrar el modal y actualizar la lista al crear un sorteo
+void _showCreateGiveawayModal() async {
+  final newGiveaway = await showDialog<Map<String, dynamic>>(
+    context: context,
+    builder: (context) => const GiveawayModal(),
+  );
 
-    if (newGiveaway != null) {
-      setState(() {
-        // Eliminar la descripción antes de agregar el sorteo
-        final giveawayWithoutDescription = {
-          'name': newGiveaway['name'],
-          'start_date': newGiveaway['start_date'],
-          'end_date': newGiveaway['end_date'],
-          'draw_date': newGiveaway['draw_date'],
-          'status': newGiveaway['status'] ?? 'Activo',  // Utiliza el status del backend
-        };
-
-        giveaways.add(giveawayWithoutDescription);  // Agrega el nuevo sorteo a la lista
-        filteredGiveaways = List.from(giveaways);  // Actualiza el filtrado
-      });
-    }
+  if (newGiveaway != null) {
+    await _loadGiveaways();  // Llama nuevamente a la función de carga y espera a que se complete
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -132,43 +121,42 @@ class ViewGiveawaysScreenState extends State<ViewGiveawaysScreen> {
       child: Scaffold(
         drawer: const CustomDrawer(),
         appBar: const CustomAppBar(),
-        body: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(14.0),
-            child: Column(
-              children: [
-                const SizedBox(height: 20),
-                const Text(
-                  'Gestión de Sorteos',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w600,
-                    fontFamily: 'TitilliumWeb',
-                    color: Colors.black,
-                  ),
+        body: Padding(
+          padding: const EdgeInsets.all(14.0),
+          child: Column(
+            children: [
+              const SizedBox(height: 20),
+              const Text(
+                'Gestión de Sorteos',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: 'TitilliumWeb',
+                  color: Colors.black,
                 ),
-                const SizedBox(height: 20),
-                CustomTextFormField(
-                  labelText: 'Buscar sorteo',
-                  icon: Icons.search,
-                  controller: _searchController,
-                  onChanged: _filterGiveaways,
-                ),
-                const SizedBox(height: 10),
-                isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : filteredGiveaways.isEmpty
-                        ? const Center(
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(vertical: 20),
-                              child: Text(
-                                'Aún no hay sorteos creados',
-                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey),
-                              ),
+              ),
+              const SizedBox(height: 20),
+              CustomTextFormField(
+                labelText: 'Buscar sorteo',
+                icon: Icons.search,
+                controller: _searchController,
+                onChanged: _filterGiveaways,
+              ),
+              const SizedBox(height: 10),
+              isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : filteredGiveaways.isEmpty
+                      ? const Center(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 20),
+                            child: Text(
+                              'Aún no hay sorteos creados',
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey),
                             ),
-                          )
-                        : ListView.builder(
-                            shrinkWrap: true,
+                          ),
+                        )
+                      : Expanded(  // Mover la lista a un Expanded para ocupar el espacio disponible
+                          child: ListView.builder(
                             itemCount: visibleGiveaways.length,
                             itemBuilder: (context, index) {
                               final giveaway = visibleGiveaways[index];
@@ -184,9 +172,10 @@ class ViewGiveawaysScreenState extends State<ViewGiveawaysScreen> {
                                   subtitle: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text('Fecha inicio: ${giveaway['start_date']}'),
-                                      Text('Fecha fin: ${giveaway['end_date']}'),
-                                      Text('Fecha sorteo: ${giveaway['draw_date']}'),
+                                      Text('Premios a sortear: ${giveaway['prize_count']}'),
+                                      Text('Inicio participación: ${giveaway['start_date']}'),
+                                      Text('Fin participación: ${giveaway['end_date']}'),
+                                      Text('Fecha del sorteo: ${giveaway['draw_date']}'),
                                       Text('Estado: ${giveaway['status']}'),
                                     ],
                                   ),
@@ -194,41 +183,37 @@ class ViewGiveawaysScreenState extends State<ViewGiveawaysScreen> {
                               );
                             },
                           ),
-                const SizedBox(height: 20),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 15.0, horizontal: 14.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back),
-                        onPressed: currentPage > 1 ? () => setState(() => currentPage--) : null,
-                      ),
-                      Text(
-                        'Página $currentPage de $totalPages',
-                        style: const TextStyle(fontFamily: 'TitilliumWeb', fontWeight: FontWeight.w400),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.arrow_forward),
-                        onPressed: currentPage < totalPages ? () => setState(() => currentPage++) : null,
-                      ),
-                    ],
-                  ),
+                        ),
+              const SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 15.0, horizontal: 14.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: currentPage > 1 ? () => setState(() => currentPage--) : null,
+                    ),
+                    Text(
+                      'Página $currentPage de $totalPages',
+                      style: const TextStyle(fontFamily: 'TitilliumWeb', fontWeight: FontWeight.w400),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.arrow_forward),
+                      onPressed: currentPage < totalPages ? () => setState(() => currentPage++) : null,
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 20),
-                CustomBottonSec(
-                  text: 'Agregar Sorteo',
-                  onPressed: _showCreateGiveawayModal, // Abre el modal para crear un sorteo
-                ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 20),
+              CustomBottonSec(
+                text: 'Agregar Sorteo',
+                onPressed: _showCreateGiveawayModal, // Abre el modal para crear un sorteo
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 }
-
-
-
-
