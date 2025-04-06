@@ -51,6 +51,7 @@ class ViewGiveawaysScreenState extends State<ViewGiveawaysScreen> {
               giveaways = List<Map<String, dynamic>>.from(data['data']);
               giveaways = giveaways.map((giveaway) {
                 return {
+                  'id': giveaway['id_giveaway'],
                   'name': giveaway['name_giveaway'] ?? 'Nombre no disponible',
                   'prize_count': giveaway['prize_count'] ?? 0,
                   'start_date': giveaway['start_date_giveaway'] ?? 'No disponible',
@@ -144,7 +145,9 @@ class ViewGiveawaysScreenState extends State<ViewGiveawaysScreen> {
               ),
               const SizedBox(height: 10),
               isLoading
-                  ? const Center(child: CircularProgressIndicator())
+                  ? const Center(child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF0000)), // Usando el color rojo
+                  ))
                   : filteredGiveaways.isEmpty
                       ? const Center(
                           child: Padding(
@@ -202,10 +205,11 @@ class ViewGiveawaysScreenState extends State<ViewGiveawaysScreen> {
                                       alignment: Alignment.centerRight,
                                       child: ElevatedButton(
                                         onPressed: () {
+                                          final int giveawayId = giveaway['id'];  // Obtienes el id del sorteo
                                           // Aquí va la lógica para asignar el premio
                                            Navigator.push(
                                             context,
-                                             MaterialPageRoute(builder: (context) => const AssignPrizeScreen()),  
+                                             MaterialPageRoute(builder: (context) => AssignPrizeScreen(giveawayId: giveawayId)),  
                                            );
                                         },
                                         style: ElevatedButton.styleFrom(
@@ -256,7 +260,7 @@ class ViewGiveawaysScreenState extends State<ViewGiveawaysScreen> {
               ),
               const SizedBox(height: 20),
               CustomBottonSec(
-                text: 'Agregar Sorteo',
+                text: 'Agregar',
                 onPressed: _showCreateGiveawayModal, // Abre el modal para crear un sorteo
               ),
             ],
