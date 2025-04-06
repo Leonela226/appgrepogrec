@@ -110,6 +110,17 @@ class ViewGiveawaysScreenState extends State<ViewGiveawaysScreen> {
     }
   }
 
+  // Método para obtener el color del círculo según el estado
+  Color _getStatusColor(String status) {
+    if (status == 'activo') {
+      return Colors.green;
+    } else if (status == 'pendiente') {
+      return Colors.yellow;
+    } else {
+      return Colors.grey; // Si el estado no es "activo" ni "pendiente"
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     int totalPages = (filteredGiveaways.length / itemsPerPage).ceil();
@@ -171,7 +182,7 @@ class ViewGiveawaysScreenState extends State<ViewGiveawaysScreen> {
                               return Card(
                                 margin: const EdgeInsets.symmetric(vertical: 10),
                                 child: ListTile(
-                                  contentPadding: const EdgeInsets.all(10),
+                                  contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4), // Agregar padding horizontal
                                   title: Text(
                                     giveaway['name'],
                                     style: const TextStyle(
@@ -198,7 +209,6 @@ class ViewGiveawaysScreenState extends State<ViewGiveawaysScreen> {
                                       ],
                                     ),
                                   ),
-                                  // Agregar botón centrado a la derecha
                                   trailing: SizedBox(
                                     width: 100, // Ajustar tamaño del botón
                                     child: Align(
@@ -206,7 +216,6 @@ class ViewGiveawaysScreenState extends State<ViewGiveawaysScreen> {
                                       child: ElevatedButton(
                                         onPressed: () {
                                           final int giveawayId = giveaway['id'];  // Obtienes el id del sorteo
-                                          // Aquí va la lógica para asignar el premio
                                            Navigator.push(
                                             context,
                                              MaterialPageRoute(builder: (context) => AssignPrizeScreen(giveawayId: giveawayId)),  
@@ -229,12 +238,17 @@ class ViewGiveawaysScreenState extends State<ViewGiveawaysScreen> {
                                       ),
                                     ),
                                   ),
+                                  // Círculo de color según el estado
+                                  leading: CircleAvatar(
+                                    backgroundColor: _getStatusColor(giveaway['status']),
+                                    radius: 8,  // Radio reducido para hacerlo más pequeño
+                                  ),
                                 ),
                               );
                             },
                           ),
                         ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 8),
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 15.0, horizontal: 14.0),
                 child: Row(
@@ -270,3 +284,5 @@ class ViewGiveawaysScreenState extends State<ViewGiveawaysScreen> {
     );
   }
 }
+
+

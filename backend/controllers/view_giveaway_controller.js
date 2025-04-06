@@ -48,28 +48,31 @@ exports.createGiveaway = async (req, res) => {
     }
 };
 
-// Obtener todos los sorteos con fechas formateadas
+
 // Obtener todos los sorteos con fechas formateadas
 exports.getAllGiveaways = async (req, res) => {
     try {
         const giveaways = await Giveaway.findAll();
 
+        // Función auxiliar para formatear fechas
+        const formatDate = (val) => val ? new Date(val).toISOString().split('T')[0] : null;
+
         const formatted = giveaways.map(g => {
             const gData = g.toJSON();
+
             const formattedGiveaway = {
                 ...gData,
+                id_giveaway: gData.id_giveaway,
                 name_giveaway: gData.name_giveaway,
-                start_date_giveaway: gData.start_date_giveaway?.toISOString().split('T')[0],
-                end_date_giveaway: gData.end_date_giveaway?.toISOString().split('T')[0],
-                draw_date_giveaway: gData.draw_date_giveaway?.toISOString().split('T')[0],
-                prize_count: gData.prize_count,  // Asegúrate de que esto esté presente
+                start_date_giveaway: formatDate(gData.start_date_giveaway),
+                end_date_giveaway: formatDate(gData.end_date_giveaway),
+                draw_date_giveaway: formatDate(gData.draw_date_giveaway),
+                prize_count: gData.prize_count,
                 status_giveaway: gData.status_giveaway,
-                createdAt: gData.createdAt?.toISOString().split('T')[0],
-                updatedAt: gData.updatedAt?.toISOString().split('T')[0],
+
             };
 
-            // Agrega un console.log para verificar las fechas formateadas
-            console.log('Sorteo Formateado:', formattedGiveaway);
+           // console.log('Sorteo Formateado:', formattedGiveaway);
 
             return formattedGiveaway;
         });
@@ -83,6 +86,7 @@ exports.getAllGiveaways = async (req, res) => {
         return res.status(500).json({ message: "Error al obtener los sorteos.", error: error.message });
     }
 };
+
 
 
 
@@ -100,11 +104,14 @@ exports.getGiveawayById = async (req, res) => {
         const gData = giveaway.toJSON();
         const formatted = {
             ...gData,
-            start_date_giveaway: gData.start_date_giveaway?.toISOString().split('T')[0],
-            end_date_giveaway: gData.end_date_giveaway?.toISOString().split('T')[0],
-            draw_date_giveaway: gData.draw_date_giveaway?.toISOString().split('T')[0],
-            createdAt: gData.createdAt?.toISOString().split('T')[0],
-            updatedAt: gData.updatedAt?.toISOString().split('T')[0],
+            id_giveaway: gData.id_giveaway,
+            name_giveaway: gData.name_giveaway,
+            start_date_giveaway: formatDate(gData.start_date_giveaway),
+            end_date_giveaway: formatDate(gData.end_date_giveaway),
+            draw_date_giveaway: formatDate(gData.draw_date_giveaway),
+            prize_count: gData.prize_count,
+            status_giveaway: gData.status_giveaway,
+
         };
 
         return res.status(200).json({

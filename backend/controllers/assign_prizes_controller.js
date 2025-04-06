@@ -17,7 +17,7 @@ exports.assignPrize = async (req, res) => {
 
     // Obtener todos los premios para llenar el dropdown de premios
     const allPrizes = await Prize.findAll({
-      attributes: ['id_prize', 'name_prize'], // Solo obtenemos id y nombre de los premios
+      attributes: ['name_prize'], // Solo obtenemos nombre de los premios
     });
 
     if (allPrizes.length === 0) {
@@ -132,27 +132,3 @@ exports.getGiveawayById = async (req, res) => {
 
 
 
-/* 
-// Endpoint para obtener el nombre del sorteo
-exports.getGiveawayById = async (req, res) => {
-    const { id_giveaway } = req.params; // Obtener el ID del sorteo
-  
-    try {
-      // Buscar el sorteo en la base de datos
-      const giveaway = await Giveaway.findByPk(id_giveaway);
-      if (!giveaway) {
-        return res.status(404).json({ message: 'Sorteo no encontrado' });
-      }
-  
-      // Devolver el nombre del sorteo
-      return res.status(200).json({
-        message: 'Sorteo encontrado',
-        name: giveaway.name_giveaway,
-      });
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({ message: 'Error al obtener el sorteo', error: error.message });
-    }
-  };
-  
-  */

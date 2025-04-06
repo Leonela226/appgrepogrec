@@ -19,11 +19,12 @@ class AssignPrizeScreenState extends State<AssignPrizeScreen> {
   int? selectedNumber = 1; // Valor predeterminado para el primer dropdown
   int? selectedNumber2 = 1; // Valor predeterminado para el segundo dropdown
   String giveawayName = ''; // Variable para almacenar el nombre del sorteo
+  int? prizeCount; // Variable para almacenar la cantidad de premios a sortear
 
   @override
   void initState() {
     super.initState();
-    _fetchGiveawayDetails(); // Llamada para obtener el nombre del sorteo
+    _fetchGiveawayDetails(); // Llamada para obtener los detalles del sorteo
   }
 
   // Función para obtener los detalles del sorteo desde el backend
@@ -38,18 +39,16 @@ class AssignPrizeScreenState extends State<AssignPrizeScreen> {
 
     try {
       final response = await http.get(Uri.parse('$baseUrl/api/assign/giveaway/${widget.giveawayId}'));  // Usa la base URL de .env
-      //print('Respuesta: ${response.statusCode} - ${response.body}');
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
           giveawayName = data['name'];  // Suponiendo que el backend devuelve el nombre del sorteo en el campo 'name'
+          prizeCount = data['prize_count'];  // Suponiendo que el backend devuelve la cantidad de premios en el campo 'prize_count'
         });
       } else {
-        // Mostrar mensaje de error con CustomSnackbar si la respuesta no es 200
         CustomSnackbar.showError(context, 'Error al cargar el sorteo');
       }
     } catch (error) {
-      // Manejo de error y mostrar mensaje con CustomSnackbar
       CustomSnackbar.showError(context, 'Error al obtener los detalles del sorteo: $error');
     }
   }
@@ -65,27 +64,33 @@ class AssignPrizeScreenState extends State<AssignPrizeScreen> {
           children: [
             const SizedBox(height: 20),
             const Text(
-              'Asignar Premios', // Título
+              'Asignar Premios',
               style: TextStyle(
-                fontSize: 22, // Tamaño de fuente
-                fontWeight: FontWeight.w600, // Peso de fuente
-                fontFamily: 'TitilliumWeb', // Fuente personalizada
-                color: Colors.black, // Color de texto
+                fontSize: 22,
+                fontWeight: FontWeight.w600,
+                fontFamily: 'TitilliumWeb',
+                color: Colors.black,
               ),
             ),
-            const SizedBox(height: 20), // Espacio entre el título y el contenido
+            const SizedBox(height: 20),
 
             // Aquí mostramos el nombre del sorteo o el texto "Cargando..."
             giveawayName.isNotEmpty
-                ? Text(
-                    'Sorteo: $giveawayName',
-                    style: const TextStyle(
-                      fontFamily: 'TitilliumWeb',
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                    ),
+                ? Row(
+                    children: [
+                      const Icon(Icons.card_giftcard, size: 20), // Icono de regalo
+                      const SizedBox(width: 8), // Espacio entre el icono y el texto
+                      Text(
+                        'Sorteo: $giveawayName',
+                        style: const TextStyle(
+                          fontFamily: 'TitilliumWeb',
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   )
-                : const Text( // Mostramos "Cargando..." en lugar del CircularProgressIndicator
+                : const Text(
                     'Cargando...',
                     style: TextStyle(
                       fontFamily: 'TitilliumWeb',
@@ -94,10 +99,30 @@ class AssignPrizeScreenState extends State<AssignPrizeScreen> {
                     ),
                   ),
 
+            const SizedBox(height: 30), // Espacio antes de los premios
+
+            // Aquí mostramos la cantidad de premios a sortear
+            prizeCount != null
+                ? Row(
+                    children: [
+                      const Icon(Icons.emoji_events, size: 20), // Icono de premio
+                      const SizedBox(width: 8), // Espacio entre el icono y el texto
+                      Text(
+                        'Premios a sortear: $prizeCount',
+                        style: const TextStyle(
+                          fontFamily: 'TitilliumWeb',
+                          fontSize: 15,
+                          fontWeight: FontWeight.w300,
+                        ),
+                      ),
+                    ],
+                  )
+                : const SizedBox(),
+
             const SizedBox(height: 30), // Espacio antes de los Dropdowns
             // Row con dos Dropdowns
             Row(
-              mainAxisAlignment: MainAxisAlignment.center, // Centra los Dropdowns
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // Primer Dropdown
                 Padding(
@@ -105,14 +130,14 @@ class AssignPrizeScreenState extends State<AssignPrizeScreen> {
                   child: Column(
                     children: [
                       const Text(
-                        'Selecciona el Premio', // Texto encima del primer dropdown
+                        'Selecciona el Premio',
                         style: TextStyle(
-                          fontSize: 14, // Tamaño de fuente para el texto del dropdown
+                          fontSize: 14,
                           fontWeight: FontWeight.w500,
                           color: Colors.black,
                         ),
                       ),
-                      const SizedBox(height: 8), // Espacio entre el texto y el dropdown
+                      const SizedBox(height: 8),
                       DropdownButton<int>(
                         value: selectedNumber,
                         items: List.generate(10, (index) {
@@ -131,7 +156,7 @@ class AssignPrizeScreenState extends State<AssignPrizeScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(width: 20), // Espacio entre los dos dropdowns
+                const SizedBox(width: 20),
 
                 // Segundo Dropdown
                 Padding(
@@ -139,14 +164,14 @@ class AssignPrizeScreenState extends State<AssignPrizeScreen> {
                   child: Column(
                     children: [
                       const Text(
-                        'Selecciona el orden', // Texto encima del segundo dropdown
+                        'Selecciona el orden',
                         style: TextStyle(
-                          fontSize: 14, // Tamaño de fuente para el texto del dropdown
+                          fontSize: 14,
                           fontWeight: FontWeight.w500,
                           color: Colors.black,
                         ),
                       ),
-                      const SizedBox(height: 8), // Espacio entre el texto y el dropdown
+                      const SizedBox(height: 8),
                       DropdownButton<int>(
                         value: selectedNumber2,
                         items: List.generate(10, (index) {

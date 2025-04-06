@@ -11,6 +11,7 @@ const userRoleRoute = require("./routes/user_rol_route");
 const carouselRoute = require("./routes/carousel_images_route");
 const prizeRoute = require("./routes/prizes_routes");
 const giveawayRoute = require("./routes/view_giveaway_route");
+const assignRoute = require("./routes/assign_prizes_route");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -41,6 +42,7 @@ app.use('/api/user', userRoleRoute);
 app.use('/api/carousel', carouselRoute);
 app.use('/api/prizes',prizeRoute); 
 app.use('/api/giveaways',giveawayRoute); 
+app.use('/api/assign',assignRoute);
 
 // WebSockets: escuchar conexiones
 io.on("connection", (socket) => {
