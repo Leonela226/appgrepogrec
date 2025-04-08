@@ -19,11 +19,10 @@ void main() async {
 
   // Inicializar Firebase con manejo de errores
   try {
-    await Firebase.initializeApp();
-    print("🔥 Firebase inicializado correctamente");
+  await Firebase.initializeApp();
+  debugPrint("🔥 Firebase inicializado correctamente");
   } catch (e) {
-    print("❌ Error al inicializar Firebase: $e");
-    // Si no se puede inicializar Firebase, manejar el error (y posiblemente continuar o mostrar un error en la UI).
+  debugPrint("❌ Error al inicializar Firebase: $e");
   }
 
   // Eliminar la pantalla de carga una vez que todo esté listo

@@ -80,7 +80,7 @@ class CustomBottomNavBarState extends State<CustomBottomNavBar> {
           iconSize: 28,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           duration: const Duration(milliseconds: 400),
-          tabBackgroundColor: const Color(0xFF434244).withOpacity(0.1),
+          tabBackgroundColor: Color.fromRGBO(67, 66, 68, 0.1), // Usamos .fromRGBO en lugar de .withOpacity
           color: Colors.grey,
           selectedIndex: selectedIndex,
           onTabChange: _onItemTapped,

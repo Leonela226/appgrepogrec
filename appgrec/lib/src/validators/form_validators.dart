@@ -1,9 +1,8 @@
-
 String? validateEmail(String? value) {
   if (value == null || value.isEmpty) {
-    return 'Este campo es obligatorio';
+    return 'Este campo es requerido';
   }
-  String pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$';
+  String pattern = r'^[^\s@]+@[^\s@]+\.[^\s@]+$';
   RegExp regExp = RegExp(pattern);
   if (!regExp.hasMatch(value)) {
     return 'Por favor ingrese un correo válido';
@@ -11,17 +10,18 @@ String? validateEmail(String? value) {
   return null;
 }
 
+
 String? validatePassword(String? value) {
   if (value == null || value.isEmpty) {
-    return 'Este campo es obligatorio';
+    return 'Este campo es requerido';
   }
   if (value.length < 8) {
     return 'La contraseña debe tener al menos 8 caracteres';
   }
-  String pattern = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).+$';
+  String pattern = r'^(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$';
   RegExp regExp = RegExp(pattern);
   if (!regExp.hasMatch(value)) {
-    return 'La contraseña debe contener al menos una letra minúscula, una letra mayúscula, un número y un carácter especial';
+    return 'La contraseña debe tener al menos una mayúscula\nun número y un caracter especial';
   }
   return null;
 }
@@ -29,56 +29,68 @@ String? validatePassword(String? value) {
 
 String? validateUsername(String? value) {
   if (value == null || value.isEmpty) {
-    return 'Este campo es obligatorio';
+    return 'Este campo es requerido';
+  }
+  if (value.length < 2 || value.length > 150) {
+    return 'Ingrese un nombre válido';
+  }
+  if (!RegExp(r'^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]+$').hasMatch(value)) {
+    return 'El nombre no puede contener números\nni caracteres especiales';
+  }
+  if (RegExp(r'\s{2,}').hasMatch(value)) {
+    return 'El nombre no puede contener espacios dobles';
   }
   return null;
 }
+
+
 
 String? validatePhoneNumber(String? value) {
   if (value == null || value.isEmpty) {
-    return 'Este campo es obligatorio';
+    return 'Este campo es requerido';
   }
-  String pattern = r'^[3-9][0-9]{7}$';
-  RegExp regExp = RegExp(pattern);
-  if (!regExp.hasMatch(value)) {
-    return 'Por favor ingrese un número de teléfono válido';
+
+  // Verifica que el primer dígito sea 9 o 3
+  if (!RegExp(r'^[93]').hasMatch(value)) {
+    return 'El número debe comenzar con 9 o 3';
   }
+
+  // Verifica que el número tenga exactamente 8 dígitos
+  if (!RegExp(r'^\d{8}$').hasMatch(value)) {
+    return 'El número debe tener 8 dígitos';
+  }
+
   return null;
 }
-String? validateDateNotInFuture(String? value) {
+
+
+String? validateDateOfBirth(String? value) {
   if (value == null || value.isEmpty) {
-    return 'Este campo es obligatorio';
+    return 'Este campo es requerido';
   }
 
-  // Intentar analizar la fecha ingresada con formato DD/MM/YYYY
   try {
-    List<String> parts = value.split('/');
-    if (parts.length == 3) {
-      int day = int.parse(parts[0]);
-      int month = int.parse(parts[1]);
-      int year = int.parse(parts[2]);
+    // Convertir el valor a formato YYYY-MM-DD
+    DateTime birthDate = DateTime.parse(value);
+    DateTime today = DateTime.now();
 
-      // Validar si la fecha es válida
-      if (month < 1 || month > 12 || day < 1 || day > 31) {
-        return 'Por favor ingrese una fecha válida';
-      }
+    // Verificar que no sea una fecha futura
+    if (birthDate.isAfter(today)) {
+      return 'La fecha no puede ser en el futuro';
+    }
 
-      DateTime inputDate = DateTime(year, month, day);
-      DateTime today = DateTime.now();
+    // Verificar que tenga al menos 18 años
+    int age = today.year - birthDate.year;
+    if (today.month < birthDate.month || (today.month == birthDate.month && today.day < birthDate.day)) {
+      age--; // Ajuste si el cumpleaños aún no ha pasado este año
+    }
 
-      if (inputDate.isAfter(today)) {
-        return 'La fecha no puede ser en el futuro';
-      }
-    } else {
-      return 'Por favor ingrese una fecha válida en formato DD/MM/YYYY';
+    if (age < 18) {
+      return 'Debes ser mayor de 18 años';
     }
   } catch (e) {
-    return 'Por favor ingrese una fecha válida';
+    return 'Por favor ingrese una fecha válida en formato YYYY-MM-DD';
   }
 
   return null;
 }
-
-
-
-

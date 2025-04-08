@@ -1,10 +1,11 @@
 import 'package:appgrec/src/validators/form_validators.dart';
 import 'package:appgrec/src/widgets/custom_appbar.dart';
-import 'package:appgrec/src/widgets/custom_button.dart';
+import 'package:appgrec/src/widgets/custom_buttons_prim.dart';
 import 'package:appgrec/src/widgets/custom_text_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:appgrec/src/providers/auth.dart';
+import 'package:appgrec/src/widgets/custom_snackbar.dart'; // Importa el widget de snackbar personalizado
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -63,20 +64,6 @@ class RegisterPageState extends State<RegisterPage> {
     }
   }
 
-  void _showSnackBar(BuildContext context, String message, Color color) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          message,
-          style: const TextStyle(color: Colors.white),
-        ),
-        backgroundColor: color,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 3),
-      ),
-    );
-  }
-
   void _register(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -104,9 +91,9 @@ class RegisterPageState extends State<RegisterPage> {
 
       if (mounted) {
         if (result == null) {
-          _showSnackBar(context, 'Usuario registrado exitosamente', Colors.green);
+          CustomSnackbar.showSuccess(context, 'Usuario registrado exitosamente'); // Correcto
         } else {
-          _showSnackBar(context, 'Error: $result', Colors.red);
+          CustomSnackbar.showError(context, 'Error: $result'); // Uso del SnackBar personalizado
         }
       }
     }
@@ -116,7 +103,7 @@ class RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const CustomAppBar(),
- body: Stack(
+      body: Stack(
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -129,8 +116,9 @@ class RegisterPageState extends State<RegisterPage> {
                     'Registro',
                     textAlign: TextAlign.center,
                     style: const TextStyle(
+                      fontFamily: 'TitilliumWeb', // Cambiado para usar TitilliumWeb
+                      fontWeight: FontWeight.w600, // SemiBold
                       fontSize: 24,
-                      fontWeight: FontWeight.bold,
                       color: Colors.black,
                     ),
                   ),
@@ -223,9 +211,7 @@ class RegisterPageState extends State<RegisterPage> {
               color: Colors.black.withAlpha((0.5 * 255).round()),
               child: Center(
                 child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    const Color(0xFFFF0000),
-                  ),
+                  valueColor: AlwaysStoppedAnimation<Color>(const Color(0xFFFF0000)),
                 ),
               ),
             ),

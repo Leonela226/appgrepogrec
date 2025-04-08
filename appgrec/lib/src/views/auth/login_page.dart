@@ -1,10 +1,11 @@
 import 'package:appgrec/src/widgets/custom_appbar.dart';
-import 'package:appgrec/src/widgets/custom_button.dart';
+import 'package:appgrec/src/widgets/custom_buttons_prim.dart';
 import 'package:appgrec/src/widgets/custom_text_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:appgrec/src/providers/auth.dart';
 import 'package:appgrec/src/routes/routes.dart';
+import 'package:appgrec/src/widgets/custom_snackbar.dart'; // Asegúrate de importar el archivo con el widget de Snackbar
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -36,27 +37,38 @@ class LoginPageState extends State<LoginPage> {
         _passwordController.text.trim(),
       );
 
+      if (!mounted) return;  // Verificar si el widget sigue montado
+
       setState(() {
         _isLoading = false;
       });
 
       if (error != null) {
-        _showSnackBar(error);
+        // Usando el widget personalizado de Snackbar
+        CustomSnackbar.showError(context, error);
       } else {
-        Navigator.pushReplacementNamed(context, Routes.home);
+        // Ahora obtenemos el rol del usuario
+        await authProvider.fetchUserRole();
+
+        if (!mounted) return;  // Verificar si el widget sigue montado
+
+        // Comprobamos el rol del usuario
+        String? role = authProvider.userRole;
+
+        if (role == null) {
+          CustomSnackbar.showError(context, "No se pudo obtener el rol del usuario.");
+        } else {
+          // Redirigimos a la pantalla correspondiente según el rol
+          if (role == '1' || role =='2') { // Administrador o moderador
+            Navigator.pushReplacementNamed(context, '/admin_dashboard_client');  
+          } else if (role == '3') { // Cliente
+            Navigator.pushReplacementNamed(context, '/client_home');  // /client_home //view_prizes
+          } else {
+            CustomSnackbar.showError(context, "Rol desconocido.");
+          }
+        }
       }
     }
-  }
-
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message, style: const TextStyle(color: Colors.white)),
-        backgroundColor: Colors.red,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 3),
-      ),
-    );
   }
 
   @override
@@ -76,8 +88,9 @@ class LoginPageState extends State<LoginPage> {
                     Text(
                       'Inicio de Sesión',
                       style: TextStyle(
+                        fontFamily: 'TitilliumWeb',
+                        fontWeight: FontWeight.w600, // SemiBold
                         fontSize: 24,
-                        fontWeight: FontWeight.bold,
                         color: Colors.black,
                       ),
                       textAlign: TextAlign.center,
@@ -141,8 +154,9 @@ class LoginPageState extends State<LoginPage> {
                       child: Text(
                         '¿Olvidó su contraseña?',
                         style: TextStyle(
+                          fontFamily: 'TitilliumWeb',
+                          fontWeight: FontWeight.w600, // SemiBold
                           color: Color(0xFFFF0000), // Manteniendo el color de la aplicación
-                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
@@ -156,9 +170,7 @@ class LoginPageState extends State<LoginPage> {
               color: Colors.black.withAlpha((0.5 * 255).round()),
               child: Center(
                 child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    const Color(0xFFFF0000),
-                  ),
+                  valueColor: AlwaysStoppedAnimation<Color>(const Color(0xFFFF0000)),
                 ),
               ),
             ),
