@@ -1,53 +1,121 @@
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const Giveaway = require("../models/view_giveaway_model");
-const { Op } = require('sequelize');
 
-// Crear un nuevo sorteo
+// Configuración de almacenamiento para multer
+const storage = multer.diskStorage({
+    destination: async (req, file, cb) => {
+        const dir = path.join(__dirname, '..', 'uploads', 'giveaway_images');
+        try {
+            await fs.promises.mkdir(dir, { recursive: true });  // Crear el directorio si no existe
+            cb(null, dir);
+        } catch (error) {
+            console.error("Error al crear el directorio:", error);
+            cb(new Error("No se pudo crear el directorio para las imágenes de los sorteos."));
+        }
+    },
+    filename: (req, file, cb) => {
+        const ext = path.extname(file.originalname).toLowerCase(); // Asegurar extensión en minúsculas
+        const filename = `${Date.now()}${ext}`;
+        cb(null, filename);
+    }
+});
+
+// Configuración de multer con un límite de tamaño y filtro de tipos de archivo
+const upload = multer({
+    storage: storage,
+    limits: { fileSize: 10 * 1024 * 1024 }, // Limitar tamaño a 10 MB
+    fileFilter: (req, file, cb) => {
+        //console.log("Tipo MIME recibido:", file.mimetype); // Log para verificar el tipo MIME
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+        if (allowedTypes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Solo se permiten imágenes de tipo JPEG, PNG o GIF'), false);
+        }
+    }
+});
+
 exports.createGiveaway = async (req, res) => {
-    const { name, description, start_date, end_date, draw_date, prize_count } = req.body;
+    upload.single('giveaway_image')(req, res, async (err) => {
+        if (err instanceof multer.MulterError) {
+            console.error("MulterError:", err);  // Log para errores de Multer
+            return res.status(400).json({ message: "Error al cargar la imagen del sorteo.", error: err.message });
+        } else if (err) {
+            console.error("Error general en Multer:", err);  // Log para errores generales
+            return res.status(500).json({ message: "Error interno del servidor.", error: err.message });
+        }
 
-    // Validar campos requeridos
-    if (!name || !prize_count || !start_date || !end_date || !draw_date) {
-        return res.status(400).json({ message: "Faltan datos requeridos." });
-    }
+        if (!req.file) {
+            return res.status(400).json({ message: "No se ha cargado ninguna imagen del sorteo." });
+        }
 
-    // Validar formato de fechas
-    const startDate = new Date(start_date);
-    const endDate = new Date(end_date);
-    const drawDate = new Date(draw_date);
+        // Logs para depuración
+       // console.log("Body recibido:", req.body);
+        //console.log("Archivo recibido:", req.file);
 
-    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime()) || isNaN(drawDate.getTime())) {
-        return res.status(400).json({ message: "Las fechas proporcionadas no son válidas." });
-    }
+        const { name, description, start_date, end_date, draw_date, prize_count } = req.body;
 
-    // Formatear fechas a YYYY-MM-DD
-    const startDateFormatted = startDate.toISOString().split('T')[0];
-    const endDateFormatted = endDate.toISOString().split('T')[0];
-    const drawDateFormatted = drawDate.toISOString().split('T')[0];
+        if (!name || !prize_count || !start_date || !end_date || !draw_date) {
+            return res.status(400).json({ message: "Faltan datos requeridos." });
+        }
 
-    try {
-        const currentDate = new Date();
-        const status = startDate <= currentDate ? 'activo' : 'pendiente';
+        try {
+            // Verificar existencia por nombre
+            const existingGiveaway = await Giveaway.findOne({ where: { name_giveaway: name.trim() } });
+            if (existingGiveaway) {
+                return res.status(400).json({ message: "El sorteo ya existe." });
+            }
 
-        const newGiveaway = await Giveaway.create({
-            name_giveaway: name,
-            description_giveaway: description,
-            start_date_giveaway: startDateFormatted,
-            end_date_giveaway: endDateFormatted,
-            draw_date_giveaway: drawDateFormatted,
-            status_giveaway: status,
-            prize_count: prize_count
-        });
+            const startDate = new Date(start_date);
+            const endDate = new Date(end_date);
+            const drawDate = new Date(draw_date);
 
-        return res.status(201).json({
-            message: "Sorteo creado correctamente.",
-            data: newGiveaway
-        });
-    } catch (error) {
-        console.error("Error al crear el sorteo:", error);
-        return res.status(500).json({ message: "Error al guardar el sorteo en la base de datos.", error: error.message });
-    }
+            if (isNaN(startDate) || isNaN(endDate) || isNaN(drawDate)) {
+                return res.status(400).json({ message: "Las fechas proporcionadas no son válidas." });
+            }
+
+            const formattedStart = startDate.toISOString().split('T')[0];
+            const formattedEnd = endDate.toISOString().split('T')[0];
+            const formattedDraw = drawDate.toISOString().split('T')[0];
+            const currentDate = new Date();
+            const status = startDate <= currentDate ? 'activo' : 'pendiente';
+
+            const newGiveaway = await Giveaway.create({
+                name_giveaway: name.trim(),
+                image_url: req.file.filename,
+                description_giveaway: description,
+                start_date_giveaway: formattedStart,
+                end_date_giveaway: formattedEnd,
+                draw_date_giveaway: formattedDraw,
+                status_giveaway: status,
+                prize_count: prize_count
+            });
+
+            return res.status(201).json({
+                message: "Sorteo creado correctamente.",
+                data: newGiveaway
+            });
+
+        } catch (error) {
+            console.error("Error al crear el sorteo:", error);  // Log completo del error
+            if (error.name === 'SequelizeValidationError') {
+                return res.status(400).json({
+                    message: "Error de validación en la base de datos.",
+                    error: error.errors.map(e => e.message)  // Mensajes de error de validación
+                });
+            }
+            return res.status(500).json({
+                message: "Error al guardar el sorteo en la base de datos.",
+                error: error.message,
+                stack: error.stack  // Registra el stack trace para más detalles
+            });
+        }
+    });
 };
 
+// Otros métodos del controlador...
 
 // Obtener todos los sorteos con fechas formateadas
 exports.getAllGiveaways = async (req, res) => {
@@ -60,7 +128,7 @@ exports.getAllGiveaways = async (req, res) => {
         const formatted = giveaways.map(g => {
             const gData = g.toJSON();
 
-            const formattedGiveaway = {
+            return {
                 ...gData,
                 id_giveaway: gData.id_giveaway,
                 name_giveaway: gData.name_giveaway,
@@ -69,12 +137,7 @@ exports.getAllGiveaways = async (req, res) => {
                 draw_date_giveaway: formatDate(gData.draw_date_giveaway),
                 prize_count: gData.prize_count,
                 status_giveaway: gData.status_giveaway,
-
             };
-
-           // console.log('Sorteo Formateado:', formattedGiveaway);
-
-            return formattedGiveaway;
         });
 
         return res.status(200).json({
@@ -82,17 +145,17 @@ exports.getAllGiveaways = async (req, res) => {
             data: formatted
         });
     } catch (error) {
-        console.error(error);
+        console.error("Error al obtener los sorteos:", error);
         return res.status(500).json({ message: "Error al obtener los sorteos.", error: error.message });
     }
 };
 
-
-
-
 // Obtener un sorteo por ID con fechas formateadas
 exports.getGiveawayById = async (req, res) => {
     const { id } = req.params;
+
+    // Función auxiliar para formatear fechas
+    const formatDate = (val) => val ? new Date(val).toISOString().split('T')[0] : null;
 
     try {
         const giveaway = await Giveaway.findByPk(id);
@@ -111,7 +174,6 @@ exports.getGiveawayById = async (req, res) => {
             draw_date_giveaway: formatDate(gData.draw_date_giveaway),
             prize_count: gData.prize_count,
             status_giveaway: gData.status_giveaway,
-
         };
 
         return res.status(200).json({
@@ -119,7 +181,7 @@ exports.getGiveawayById = async (req, res) => {
             data: formatted
         });
     } catch (error) {
-        console.error(error);
+        console.error("Error al obtener el sorteo:", error);
         return res.status(500).json({ message: "Error al obtener el sorteo.", error: error.message });
     }
 };

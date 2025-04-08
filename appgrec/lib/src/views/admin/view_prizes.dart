@@ -188,7 +188,7 @@ class ViewPrizesScreenState extends State<ViewPrizesScreen> {
                         context: context,
                         builder: (context) {
                           return PrizeFormBottomSheet(
-                            onSave: (name, description, image) {
+                            onSave: (name, description) {
                               addPrize(name);
                             },
                           );

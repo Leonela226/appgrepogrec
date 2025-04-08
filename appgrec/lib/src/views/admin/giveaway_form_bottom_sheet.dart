@@ -1,14 +1,18 @@
 import 'dart:convert';
+import 'dart:io'; // Necesario para trabajar con archivos
+import 'package:http_parser/http_parser.dart';
+import 'package:image_picker/image_picker.dart'; // Importa el paquete image_picker
 import 'package:appgrec/src/widgets/custom_buttons_sec.dart';
+import 'package:appgrec/src/widgets/custom_dropdownbottom.dart';
 import 'package:appgrec/src/widgets/custom_snackbar.dart';
 import 'package:appgrec/src/widgets/custom_text_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:mime/mime.dart';
 
 class GiveawayModal extends StatefulWidget {
-
   const GiveawayModal({super.key});
 
   @override
@@ -19,15 +23,19 @@ class GiveawayModalState extends State<GiveawayModal> {
   final formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _prizeCountController = TextEditingController();
   final TextEditingController _startDateController = TextEditingController();
   final TextEditingController _endDateController = TextEditingController();
   final TextEditingController _drawDateController = TextEditingController();
+  int? _prizeCount; // Variable para almacenar la cantidad de premios seleccionados
+  File? _imageFile;
+
+  final ImagePicker _picker = ImagePicker();
+
 
   // Validación de campos vacíos
   bool _validateFields() {
     if (_nameController.text.isEmpty ||
-        _prizeCountController.text.isEmpty ||
+        _prizeCount == null || // Verificar si se seleccionó una cantidad de premios
         _startDateController.text.isEmpty ||
         _endDateController.text.isEmpty ||
         _drawDateController.text.isEmpty) {
@@ -68,8 +76,10 @@ class GiveawayModalState extends State<GiveawayModal> {
     }
     DateTime startDate = DateFormat('yyyy-MM-dd').parse(value);
     DateTime currentDate = DateTime.now();
-    if (startDate.isBefore(currentDate)) {
-      CustomSnackbar.showError(context, 'La fecha de inicio no puede ser anterior a hoy.');
+
+    // Comparar solo las fechas, sin importar la hora
+    if (startDate.isBefore(DateTime(currentDate.year, currentDate.month, currentDate.day))) {
+      CustomSnackbar.showWarning(context, 'La fecha de inicio no puede ser anterior al día de hoy.');
       return ''; 
     }
     return null;
@@ -84,7 +94,7 @@ class GiveawayModalState extends State<GiveawayModal> {
     DateTime endDate = DateFormat('yyyy-MM-dd').parse(value);
     DateTime startDate = DateFormat('yyyy-MM-dd').parse(_startDateController.text);
     if (endDate.isBefore(startDate)) {
-      CustomSnackbar.showError(context, 'La fecha de fin debe ser igual o posterior a la fecha de inicio.');
+      CustomSnackbar.showWarning(context, 'La fecha de fin debe ser igual o posterior a la fecha de inicio.');
       return ''; 
     }
     return null;
@@ -99,10 +109,21 @@ class GiveawayModalState extends State<GiveawayModal> {
     DateTime drawDate = DateFormat('yyyy-MM-dd').parse(value);
     DateTime endDate = DateFormat('yyyy-MM-dd').parse(_endDateController.text);
     if (drawDate.isBefore(endDate)) {
-      CustomSnackbar.showError(context, 'La fecha del sorteo debe ser igual o posterior a la fecha de fin.');
+      CustomSnackbar.showWarning(context, 'La fecha del sorteo debe ser igual o posterior a la fecha de fin.');
       return ''; 
     }
     return null;
+  }
+
+
+  // Seleccionar imagen
+  Future<void> _pickImage() async {
+    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
+    }
   }
 
   // Crear el sorteo
@@ -111,41 +132,58 @@ class GiveawayModalState extends State<GiveawayModal> {
       return;
     }
 
-    final String? backendUrl = dotenv.env['FRONTEND_URL'];
-    if (backendUrl == null || backendUrl.isEmpty) {
-      CustomSnackbar.showError(context, 'Error: FRONTEND_URL no está definida.');
+    // Verifica si no se ha seleccionado una imagen
+    if (_imageFile == null) {
+      CustomSnackbar.showWarning(context, 'Imagen no seleccionada');
       return;
     }
 
-    final String apiUrl = '$backendUrl/api/giveaways/create';
+    final String? backendUrl = dotenv.env['FRONTEND_URL'];
+    if (backendUrl == null || backendUrl.isEmpty) {
+      if (mounted) {
+        CustomSnackbar.showError(context, 'Error: FRONTEND_URL no está definida.');
+      }
+      return;
+    }
+
 
     // Formatear las fechas para asegurarse de que solo se envíe la parte de la fecha (yyyy-MM-dd)
     String formattedStartDate = DateFormat('yyyy-MM-dd').format(DateTime.parse(_startDateController.text));
     String formattedEndDate = DateFormat('yyyy-MM-dd').format(DateTime.parse(_endDateController.text));
     String formattedDrawDate = DateFormat('yyyy-MM-dd').format(DateTime.parse(_drawDateController.text));
 
-    final response = await http.post(
-      Uri.parse(apiUrl),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'name': _nameController.text,
-        'description': _descriptionController.text,
-        'prize_count': int.tryParse(_prizeCountController.text) ?? 0,
-        'start_date': formattedStartDate,
-        'end_date': formattedEndDate,
-        'draw_date': formattedDrawDate,
-      }),
-    );
+    var request = http.MultipartRequest('POST', Uri.parse('$backendUrl/api/giveaways/create'));
+
+      request.fields['name'] = _nameController.text;
+      request.fields['description'] = _descriptionController.text;
+      request.fields['prize_count'] = _prizeCount.toString();
+      request.fields['start_date'] = formattedStartDate;
+      request.fields['end_date'] = formattedEndDate;
+      request.fields['draw_date'] = formattedDrawDate;
+
+    if (_imageFile != null) {
+      final mimeType = lookupMimeType(_imageFile!.path);
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'giveaway_image',
+          _imageFile!.path,
+          contentType: mimeType != null ? MediaType.parse(mimeType) : null,
+        ),
+      );
+    }
+
+     var response = await request.send();
 
     if (response.statusCode == 201) {
-      final responseBody = jsonDecode(response.body);
-      final newGiveaway = responseBody['data'];
-
-      CustomSnackbar.showSuccess(context, responseBody['message']);
+      final responseBody = await response.stream.bytesToString();
+      final responseData = jsonDecode(responseBody);
+      CustomSnackbar.showSuccess(context, responseData['message']);
+      final newGiveaway = responseData['data'];
       Navigator.of(context).pop(newGiveaway);
     } else {
-      final responseBody = jsonDecode(response.body);
-      CustomSnackbar.showError(context, responseBody['message']);
+      final responseBody = await response.stream.bytesToString();
+      final responseData = jsonDecode(responseBody);
+      CustomSnackbar.showError(context, responseData['message']);
     }
   }
 
@@ -163,6 +201,19 @@ class GiveawayModalState extends State<GiveawayModal> {
               children: [
                 Text("Crear Sorteo", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 10),
+
+                GestureDetector(
+                  onTap: _pickImage, // Selección de imagen
+                  child: _imageFile == null
+                  ? Container(
+                    height: 100,
+                    width: 100,
+                    color: Colors.grey[300],
+                    child: const Icon(Icons.camera_alt, size: 40),
+                  )
+                  : Image.file(_imageFile!, height: 100, width: 100, fit: BoxFit.cover),
+                ),
+                const SizedBox(height: 10),
                 CustomTextFormField(labelText: 'Nombre del sorteo', controller: _nameController, icon: Icons.card_giftcard),
                 const SizedBox(height: 10),
                 CustomTextFormField(
@@ -174,7 +225,17 @@ class GiveawayModalState extends State<GiveawayModal> {
                   minLines: 3,
                 ),
                 const SizedBox(height: 10),
-                CustomTextFormField(labelText: 'Cantidad de premios', controller: _prizeCountController, icon: Icons.format_list_numbered, keyboardType: TextInputType.number),
+                CustomDropdownButton<int>( // Dropdown para la cantidad de premios
+                  labelText: 'Cantidad de premios',
+                  icon: Icons.format_list_numbered,
+                  selectedValue: _prizeCount,
+                  onChanged: (int? newValue) {
+                    setState(() {
+                      _prizeCount = newValue;
+                    });
+                  },
+                  items: List.generate(10, (index) => index + 1), // Lista de valores (1 a 10)
+                ),
                 const SizedBox(height: 10),
                 GestureDetector(
                   onTap: () => _selectDate(context, _startDateController),
@@ -216,7 +277,7 @@ class GiveawayModalState extends State<GiveawayModal> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     CustomBottonSec(text: 'Cancelar', onPressed: () => Navigator.of(context).pop()),
-                    CustomBottonSec(text: 'Guardar', onPressed: _createGiveaway),
+                    CustomBottonSec(text: 'Agregar', onPressed: _createGiveaway),
                   ],
                 ),
               ],

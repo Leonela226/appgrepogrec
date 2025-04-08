@@ -11,6 +11,10 @@ const Giveaway = sequelize.define("Giveaway", {
         type: DataTypes.STRING(100),
         allowNull: false,
     },
+    image_url: {
+        type: DataTypes.STRING(500),
+        allowNull: true,
+    },
     description_giveaway: {
         type: DataTypes.TEXT,
         allowNull: true,
