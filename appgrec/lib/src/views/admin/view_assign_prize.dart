@@ -82,15 +82,18 @@ class AssignPrizeScreenState extends State<AssignPrizeScreen> {
       body: Padding(
         padding: const EdgeInsets.all(14.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,  // Alineación a la izquierda
           children: [
             const SizedBox(height: 20),
-            const Text(
-              'Asignación de Premios',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w600,
-                fontFamily: 'TitilliumWeb',
-                color: Colors.black,
+            Center(  // Centrado del texto "Asignación de Premios"
+              child: const Text(
+                'Asignación de Premios',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: 'TitilliumWeb',
+                  color: Colors.black,
+                ),
               ),
             ),
             const SizedBox(height: 15),
@@ -102,7 +105,7 @@ class AssignPrizeScreenState extends State<AssignPrizeScreen> {
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(14.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -152,48 +155,47 @@ class AssignPrizeScreenState extends State<AssignPrizeScreen> {
             ),
 
             const SizedBox(height: 20),
-
             // Aquí colocamos ambos dropdowns uno debajo del otro
-            Expanded(
-              flex: 9, // Ocupa el 90% del espacio total
-              child: Column(
-                children: [
-                  // Dropdown de premios
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 10.0), // Espacio entre los dropdowns
-                    child: CustomDropdownButton<String>(
-                      labelText: 'Seleccione el Premio',
-                      items: prizeNames,
-                      selectedValue: selectedPrize,
-                      onChanged: (newValue) {
-                        setState(() {
-                          selectedPrize = newValue;
-                        });
-                      },
-                      itemTextStyle: const TextStyle(
-                        fontSize: 14,
-                        fontFamily: 'TitilliumWeb',
-                        color: Colors.black,
-                      ),
-                    ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 20.0), // Espacio entre los dropdowns
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width * 0.8, // 60% del ancho de la pantalla
+                child: CustomDropdownButton<String>(
+                  labelText: 'Seleccione el Premio',
+                  items: prizeNames,
+                  selectedValue: selectedPrize,
+                  onChanged: (newValue) {
+                    setState(() {
+                      selectedPrize = newValue;
+                    });
+                  },
+                  itemTextStyle: const TextStyle(
+                    fontSize: 12,
+                    fontFamily: 'TitilliumWeb',
+                    color: Colors.black,
                   ),
-                  // Dropdown de orden
-                  CustomDropdownButton<int>(
-                    labelText: 'Seleccione el Orden',
-                    items: List.generate(10, (index) => index + 1),
-                    selectedValue: selectedNumber2,
-                    onChanged: (newValue) {
-                      setState(() {
-                        selectedNumber2 = newValue;
-                      });
-                    },
-                    itemTextStyle: const TextStyle(
-                      fontSize: 14,
-                      fontFamily: 'TitilliumWeb',
-                      color: Colors.black,
-                    ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 20.0), // Espacio entre los dropdowns
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width * 0.8, // 60% del ancho de la pantalla
+                child: CustomDropdownButton<int>(
+                  labelText: 'Seleccione el Orden',
+                  items: List.generate(10, (index) => index + 1),
+                  selectedValue: selectedNumber2,
+                  onChanged: (newValue) {
+                    setState(() {
+                      selectedNumber2 = newValue;
+                    });
+                  },
+                  itemTextStyle: const TextStyle(
+                    fontSize: 12,
+                    fontFamily: 'TitilliumWeb',
+                    color: Colors.black,
                   ),
-                ],
+                ),
               ),
             ),
           ],
