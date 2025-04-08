@@ -11,4 +11,8 @@ router.post('/assign/:id_giveaway', assignPrizesController.assignPrize);  // Usa
 // Ruta para obtener el nombre de un sorteo
 router.get('/giveaway/:id_giveaway',assignPrizesController.getGiveawayById);
 
+// Ruta para obtener todos los premios disponibles
+router.get('/prizes', assignPrizesController.getAllPrizes);
+
+
 module.exports = router;

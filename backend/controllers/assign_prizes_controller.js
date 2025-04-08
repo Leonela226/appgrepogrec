@@ -2,12 +2,11 @@ const GiveawayPrize = require('../models/assign_prizes_model');
 const Giveaway = require('../models/view_giveaway_model');
 const Prize = require('../models/prizes_model');
 
-
 // Controlador para asignar un premio a un sorteo
 exports.assignPrize = async (req, res) => {
   const { id_giveaway } = req.params; // ID del sorteo pasado por parámetro
   const { id_prize, rank } = req.body; // Datos enviados para asignar el premio
-  
+
   try {
     // Verificar que el sorteo existe
     const giveaway = await Giveaway.findByPk(id_giveaway);
@@ -15,21 +14,12 @@ exports.assignPrize = async (req, res) => {
       return res.status(404).json({ message: 'Sorteo no encontrado' });
     }
 
-    // Obtener todos los premios para llenar el dropdown de premios
-    const allPrizes = await Prize.findAll({
-      attributes: ['name_prize'], // Solo obtenemos nombre de los premios
-    });
-
-    if (allPrizes.length === 0) {
-      return res.status(404).json({ message: 'No hay premios disponibles' });
-    }
-
     // Verificar la cantidad de premios asignados al sorteo
     const assignPrizes = await GiveawayPrize.count({
       where: { id_giveaway: id_giveaway }
     });
 
-    const maxPrizes = giveaway.prize_count; // Suponiendo que tienes un campo' en Giveaway
+    const maxPrizes = giveaway.prize_count; // Suponiendo que tienes un campo 'prize_count' en Giveaway
 
     // Verificar que no se asignen más premios de los permitidos
     if (assignPrizes >= maxPrizes) {
@@ -63,50 +53,75 @@ exports.assignPrize = async (req, res) => {
       message: 'Premio asignado correctamente al sorteo',
       data: newGiveawayPrize,
     });
-    
+
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Error al asignar el premio', error: error.message });
   }
 };
 
+// Obtener todos los premios disponibles
+exports.getAllPrizes = async (req, res) => {
+  try {
+    // Obtener todos los premios de la base de datos
+    const allPrizes = await Prize.findAll({
+      attributes: ['name_prize'] // Solo obtener el nombre del premio
+    });
+
+
+    if (allPrizes.length === 0) {
+      return res.status(404).json({ message: 'No hay premios disponibles' });
+    }
+
+    // Devolver los premios encontrados
+    return res.status(200).json({
+      message: 'Premios obtenidos correctamente.',
+      data: allPrizes,
+    });
+  } catch (error) {
+    console.error('Error al obtener los premios:', error);  // Esto muestra el error básico
+    console.error('Stack trace:', error.stack);  // Esto te da el trace completo del error
+    return res.status(500).json({ message: 'Error al obtener los premios', error: error.message });
+  }
+};
+
 // Obtener todos los premios asignados a un sorteo
 exports.getAllAssignedPrizes = async (req, res) => {
-    const { id_giveaway } = req.params; // ID del sorteo pasado por parámetro
-    
-    try {
-      // Verificar que el sorteo existe
-      const giveaway = await Giveaway.findByPk(id_giveaway);
-      if (!giveaway) {
-        return res.status(404).json({ message: 'Sorteo no encontrado' });
-      }
-  
-      // Obtener todos los premios asignados a este sorteo
-      const assignedPrizes = await GiveawayPrize.findAll({
-        where: { id_giveaway: id_giveaway },
-        include: [
-          { model: Prize, attributes: ['id_prize', 'name_prize'] },  // Incluir los detalles del premio
-          { model: Giveaway, attributes: ['id_giveaway', 'name_giveaway'] },  // Incluir los detalles del sorteo
-        ],
-        order: [['rank', 'ASC']],  // Ordenar por el rango (rank) si lo necesitas
-      });
-  
-      if (assignedPrizes.length === 0) {
-        return res.status(404).json({ message: 'No hay premios asignados a este sorteo.' });
-      }
-  
-      return res.status(200).json({
-        message: 'Premios asignados obtenidos correctamente.',
-        data: assignedPrizes,
-      });
-  
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({ message: 'Error al obtener los premios asignados.', error: error.message });
-    }
-  };
+  const { id_giveaway } = req.params; // ID del sorteo pasado por parámetro
 
-  // Endpoint para obtener el nombre del sorteo y la cantidad de premios
+  try {
+    // Verificar que el sorteo existe
+    const giveaway = await Giveaway.findByPk(id_giveaway);
+    if (!giveaway) {
+      return res.status(404).json({ message: 'Sorteo no encontrado' });
+    }
+
+    // Obtener todos los premios asignados a este sorteo
+    const assignedPrizes = await GiveawayPrize.findAll({
+      where: { id_giveaway: id_giveaway },
+      include: [
+        { model: Prize, attributes: ['id_prize', 'name_prize'] },  // Incluir los detalles del premio
+        { model: Giveaway, attributes: ['id_giveaway', 'name_giveaway'] },  // Incluir los detalles del sorteo
+      ],
+      order: [['rank', 'ASC']],  // Ordenar por el rango (rank) si lo necesitas
+    });
+
+    if (assignedPrizes.length === 0) {
+      return res.status(404).json({ message: 'No hay premios asignados a este sorteo.' });
+    }
+
+    return res.status(200).json({
+      message: 'Premios asignados obtenidos correctamente.',
+      data: assignedPrizes,
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Error al obtener los premios asignados.', error: error.message });
+  }
+};
+
+// Endpoint para obtener el nombre del sorteo y la cantidad de premios
 exports.getGiveawayById = async (req, res) => {
   const { id_giveaway } = req.params; // Obtener el ID del sorteo
 
@@ -128,7 +143,3 @@ exports.getGiveawayById = async (req, res) => {
     return res.status(500).json({ message: 'Error al obtener el sorteo', error: error.message });
   }
 };
-
-
-
-

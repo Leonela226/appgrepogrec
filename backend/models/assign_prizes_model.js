@@ -14,18 +14,18 @@ const GiveawayPrize = sequelize.define("GiveawayPrize", {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'giveaways', // Nombre de la tabla relacionada
-      key: 'id_giveaway', // Nombre de la clave primaria de la tabla relacionada
+      model: Giveaway, // en lugar de 'giveaways'
+      key: 'id_giveaway',
     },
   },
   id_prize: {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'prizes', // Nombre de la tabla relacionada
-      key: 'id_prize', // Nombre de la clave primaria de la tabla relacionada
+      model: Prize, // en lugar de 'prizes'
+      key: 'id_prize',
     },
-  },
+  },  
   rank: {
     type: DataTypes.INTEGER,
     allowNull: false,
