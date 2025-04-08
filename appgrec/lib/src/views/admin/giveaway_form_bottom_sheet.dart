@@ -138,8 +138,8 @@ class GiveawayModalState extends State<GiveawayModal> {
       return;
     }
 
-    final String? backendUrl = dotenv.env['FRONTEND_URL'];
-    if (backendUrl == null || backendUrl.isEmpty) {
+    final String? baseUrl = dotenv.env['FRONTEND_URL'];
+    if (baseUrl == null || baseUrl.isEmpty) {
       if (mounted) {
         CustomSnackbar.showError(context, 'Error: FRONTEND_URL no está definida.');
       }
@@ -152,7 +152,7 @@ class GiveawayModalState extends State<GiveawayModal> {
     String formattedEndDate = DateFormat('yyyy-MM-dd').format(DateTime.parse(_endDateController.text));
     String formattedDrawDate = DateFormat('yyyy-MM-dd').format(DateTime.parse(_drawDateController.text));
 
-    var request = http.MultipartRequest('POST', Uri.parse('$backendUrl/api/giveaways/create'));
+    var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/api/giveaways/create'));
 
       request.fields['name'] = _nameController.text;
       request.fields['description'] = _descriptionController.text;

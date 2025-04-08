@@ -33,14 +33,14 @@ class PrizeFormBottomSheetState extends State<PrizeFormBottomSheet> {
       return;
     }
 
-    final String? backendUrl = dotenv.env['FRONTEND_URL'];
-    if (backendUrl == null || backendUrl.isEmpty) {
+    final String? baseUrl = dotenv.env['FRONTEND_URL'];
+    if (baseUrl == null || baseUrl.isEmpty) {
       CustomSnackbar.showError(context, 'Error: FRONTEND_URL no está definida.');
       return;
     }
 
     final response = await http.post(
-      Uri.parse('$backendUrl/api/prizes/create'),
+      Uri.parse('$baseUrl/api/prizes/create'),
       headers: {
         'Content-Type': 'application/json',
       },
