@@ -68,10 +68,7 @@ class AssignPrizeScreenState extends State<AssignPrizeScreen> {
           prizeNames = List<String>.from(data['data'].map((prize) => prize['name_prize']));
           // No asignar premios hasta que se presione "Asignar"
           assignedPrizes = []; // Inicializa la lista como vacía
-  /*        // Simulación de datos asignados para la tabla
-          assignedPrizes = List.generate(prizeNames.length, (index) {
-            return {'premio': prizeNames[index], 'orden': index + 1};
-          });*/
+ 
         });
       } else {
         CustomSnackbar.showError(context, 'Error al cargar los premios');
@@ -81,55 +78,109 @@ class AssignPrizeScreenState extends State<AssignPrizeScreen> {
     }
   }
 
-  //Función para pasar datos al paginated table y restringir premios asignados 
 Future<void> _onAssign() async {
-  if (selectedPrize != null && selectedNumber2 != null) {
+  if (selectedPrize != null) {
     try {
-      // Obtener la cantidad de premios asignados para este sorteo
       final response = await http.get(Uri.parse('$baseUrl/api/assign/countPrizes/${widget.giveawayId}'));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        int assignedPrizesCount = data['assignedPrizesCount'];
-        int maxPrizes = prizeCount ?? 0; // Asegúrate de tener el número máximo de premios
+        int assignedFromDb = data['assignedPrizesCount']; // Desde backend
+        int maxPrizes = prizeCount ?? 0;
+        int assignedLocally = assignedPrizes.length;
 
-        // Verificar si se puede asignar más premios
-        if (assignedPrizesCount >= maxPrizes) {
-          CustomSnackbar.showError(context, 'No se pueden asignar más premios. El sorteo ya tiene $maxPrizes premios asignados.');
+        if ((assignedFromDb + assignedLocally) >= maxPrizes) {
+          CustomSnackbar.showWarning(
+              context, 'No se pueden asignar más premios. Ya se alcanzó el límite de $maxPrizes.');
           return;
         }
 
-        // Si aún se pueden asignar más premios, agregarlos a la lista
+        // Verifica que el premio no esté repetido localmente
+        bool prizeAlreadyUsed = assignedPrizes.any((prize) => prize['premio'] == selectedPrize);
+        if (prizeAlreadyUsed) {
+          CustomSnackbar.showWarning(context, 'Este premio ya ha sido asignado localmente, elija otro.');
+          return;
+        }
+
+        // Asegura que el orden esté en secuencia. Si no, asigna el siguiente orden disponible
+        if (assignedPrizes.isEmpty) {
+          selectedNumber2 = 1; // El primer premio siempre tendrá el orden 1
+        } else {
+          // Encontramos el próximo orden disponible
+          List<int> usedOrders = assignedPrizes.map((prize) => prize['orden'] as int).toList();
+          usedOrders.sort();
+          
+          // El próximo orden debe ser el siguiente número en la secuencia
+          selectedNumber2 = usedOrders.last + 1;
+        }
+
+        // Agrega el premio localmente
         setState(() {
           assignedPrizes.add({
             'premio': selectedPrize,
             'orden': selectedNumber2,
           });
-        });
-
-        // Limpiar los dropdowns después de la asignación si es necesario
-        setState(() {
           selectedPrize = null;
-          selectedNumber2 = 1; // Valor por defecto
+          selectedNumber2 = null; // Reinicia el número de orden
         });
 
-        // Mostrar un mensaje de éxito
         CustomSnackbar.showSuccess(context, 'Premio asignado exitosamente.');
       } else {
-        CustomSnackbar.showError(context, 'Error al verificar la cantidad de premios asignados');
+        CustomSnackbar.showError(context, 'Error al verificar la cantidad de premios asignados.');
       }
     } catch (error) {
-      CustomSnackbar.showError(context, 'Error al obtener la cantidad de premios asignados: $error');
+      CustomSnackbar.showError(context, 'Error: $error');
     }
   } else {
-    CustomSnackbar.showError(context, 'Por favor, seleccione un premio y un orden.');
+    CustomSnackbar.showWarning(context, 'Por favor, seleccione un premio.');
   }
 }
 
+
   // Función para el botón Guardar
-  void _onSave() {
-    // Aquí puedes agregar la lógica para guardar los datos
-    CustomSnackbar.showSuccess(context, 'Datos guardados exitosamente.');
+Future<void> _onSave() async {
+  if (assignedPrizes.isEmpty) {
+    CustomSnackbar.showWarning(context, 'No hay premios asignados.');
+    return;
   }
+
+  try {
+    // Preparamos los datos para enviarlos al backend
+    List<Map<String, dynamic>> prizesToSave = assignedPrizes.map((prize) {
+      return {
+        'prize_id': prize['premio'],  // Asumimos que 'premio' contiene el ID del premio
+        'rank': prize['orden'],  // Asumimos que 'orden' es el rank
+      };
+    }).toList();
+
+    // Enviamos la solicitud POST al servidor
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/assign/save'),  // El endpoint en tu backend
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: json.encode({
+        'id_giveaway': widget.giveawayId,
+        'assignedPrizes': prizesToSave,
+      }),
+    );
+
+    // Verificamos la respuesta del servidor
+    if (response.statusCode == 201) {
+      final data = json.decode(response.body);
+      CustomSnackbar.showSuccess(context, data['message']);
+      // Si los premios se guardan exitosamente, puedes limpiar la lista o actualizar el UI
+      setState(() {
+        assignedPrizes.clear();  // Limpiar los premios asignados localmente
+      });
+    } else {
+      final data = json.decode(response.body);
+      CustomSnackbar.showError(context, data['message']);
+    }
+  } catch (error) {
+    CustomSnackbar.showError(context, 'Error al guardar los premios: $error');
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -227,43 +278,21 @@ Future<void> _onAssign() async {
                     });
                   },
                   itemTextStyle: const TextStyle(
-                    fontSize: 12,
+                    fontSize: 14,
                     fontFamily: 'TitilliumWeb',
                     color: Colors.black,
                   ),
                 ),
               ),
             ),
-
-            // Segundo Dropdown (Orden) y botón al lado
             Padding(
               padding: const EdgeInsets.only(bottom: 15.0),
               child: Row(
                 children: [
-                  // Segundo Dropdown (Orden)
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.6, // 60% del ancho de la pantalla
-                    child: CustomDropdownButton<int>(
-                      labelText: 'Seleccione el Orden',
-                      items: List.generate(10, (index) => index + 1),
-                      selectedValue: selectedNumber2,
-                      onChanged: (newValue) {
-                        setState(() {
-                          selectedNumber2 = newValue;
-                        });
-                      },
-                      itemTextStyle: const TextStyle(
-                        fontSize: 12,
-                        fontFamily: 'TitilliumWeb',
-                        color: Colors.black,
-                      ),
-                    ),
-                  ),
                   const SizedBox(width: 0.5), // Espacio entre el dropdown y el botón
-
                   // Botón de asignación con CustomBottonSec
                   SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.30, // Ancho reducido al 25% de la pantalla
+                    width: MediaQuery.of(context).size.width * 0.9, // Ancho igual al 90
                     child: CustomBottonSec(
                       text: 'Asignar',
                       onPressed: _onAssign,  // Aquí usamos la nueva función
