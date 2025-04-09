@@ -22,11 +22,13 @@ class AssignPrizeScreenState extends State<AssignPrizeScreen> {
   int? selectedNumber2 = 1;
   String giveawayName = '';
   int? prizeCount;
-  List<String> prizeNames = [];
-  String? selectedPrize;
+  List<Map<String, dynamic>> prizeNames = [];
+  Map<String, dynamic>? selectedPrize; // Cambiar de String? a Map<String, dynamic>?
 
   String? baseUrl;
   List<Map<String, dynamic>> assignedPrizes = [];
+  bool prizesAssigned = false; // Nueva variable para controlar si los premios ya fueron asignados
+
 
   @override
   void initState() {
@@ -40,6 +42,7 @@ class AssignPrizeScreenState extends State<AssignPrizeScreen> {
     }
     _fetchGiveawayDetails();
     _fetchPrizes();
+    _fetchAssignedPrizes();
   }
 
   Future<void> _fetchGiveawayDetails() async {
@@ -60,16 +63,28 @@ class AssignPrizeScreenState extends State<AssignPrizeScreen> {
   }
 
   Future<void> _fetchPrizes() async {
+     print("Realizando solicitud para obtener premios...");
+
     try {
       final response = await http.get(Uri.parse('$baseUrl/api/assign/prizes'));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+        print("Datos obtenidos: $data");  // Imprime la respuesta cruda del servidor
+
         setState(() {
-          prizeNames = List<String>.from(data['data'].map((prize) => prize['name_prize']));
+          // Cambia prizeNames por prizeOptions que incluya tanto el nombre como el id
+          prizeNames = List<Map<String, dynamic>>.from(data['data'].map((prize) => {
+            'id_prize': prize['id_prize'], 
+            'name_prize': prize['name_prize']
+            
+          }));
+         
           // No asignar premios hasta que se presione "Asignar"
           assignedPrizes = []; // Inicializa la lista como vacía
  
         });
+        print("Premios cargados: $prizeNames");  // Verifica que la lista tiene los valores correctos
+
       } else {
         CustomSnackbar.showError(context, 'Error al cargar los premios');
       }
@@ -79,6 +94,13 @@ class AssignPrizeScreenState extends State<AssignPrizeScreen> {
   }
 
 Future<void> _onAssign() async {
+
+  // Verifica si los premios ya han sido asignados
+  if (prizesAssigned) {
+    CustomSnackbar.showWarning(context, 'Los datos ya se han guardado.');
+    return;
+  }
+
   if (selectedPrize != null) {
     try {
       final response = await http.get(Uri.parse('$baseUrl/api/assign/countPrizes/${widget.giveawayId}'));
@@ -116,8 +138,9 @@ Future<void> _onAssign() async {
         // Agrega el premio localmente
         setState(() {
           assignedPrizes.add({
-            'premio': selectedPrize,
+            'premio': selectedPrize?['name_prize'], // Usamos solo el nombre
             'orden': selectedNumber2,
+            'premio_id': selectedPrize?['id_prize'], // Guardamos el ID también
           });
           selectedPrize = null;
           selectedNumber2 = null; // Reinicia el número de orden
@@ -146,15 +169,19 @@ Future<void> _onSave() async {
   try {
     // Preparamos los datos para enviarlos al backend
     List<Map<String, dynamic>> prizesToSave = assignedPrizes.map((prize) {
+      // Asumimos que 'premio' tiene el nombre, pero necesitamos usar su 'id_prize'
       return {
-        'prize_id': prize['premio'],  // Asumimos que 'premio' contiene el ID del premio
-        'rank': prize['orden'],  // Asumimos que 'orden' es el rank
+        'prize_id': prize['premio_id'],  // Asegúrate de enviar el ID real del premio
+        'rank': prize['orden'],  // Este es el 'rank' (orden)
       };
     }).toList();
 
+     print("Datos a guardar: $prizesToSave"); // Depuración antes de enviar la solicitud
+
+
     // Enviamos la solicitud POST al servidor
     final response = await http.post(
-      Uri.parse('$baseUrl/api/assign/save'),  // El endpoint en tu backend
+      Uri.parse('$baseUrl/api/assign/save'),  // Endpoint del backend
       headers: {
         'Content-Type': 'application/json',
       },
@@ -168,16 +195,37 @@ Future<void> _onSave() async {
     if (response.statusCode == 201) {
       final data = json.decode(response.body);
       CustomSnackbar.showSuccess(context, data['message']);
-      // Si los premios se guardan exitosamente, puedes limpiar la lista o actualizar el UI
       setState(() {
-        assignedPrizes.clear();  // Limpiar los premios asignados localmente
+        prizesAssigned = true; // Marca como guardado
       });
     } else {
       final data = json.decode(response.body);
+      print("Error al guardar: ${data['message']}");  // Agregar esta línea para ver el error
+
       CustomSnackbar.showError(context, data['message']);
     }
   } catch (error) {
-    CustomSnackbar.showError(context, 'Error al guardar los premios: $error');
+    CustomSnackbar.showError(context, 'Error al guardar los premios asignados: $error');
+  }
+}
+
+// mostrar en la table los datos de los premios asignados al sorteo ---- no funciona
+Future<void> _fetchAssignedPrizes() async {
+  try {
+    final response = await http.get(Uri.parse('$baseUrl/api/assign/assignPrize/${widget.giveawayId}'));
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      setState(() {
+        assignedPrizes = List<Map<String, dynamic>>.from(data['data'].map((prize) => {
+          'premio': prize['name_prize'],
+          'orden': prize['rank'],
+        }));
+      });
+    } else {
+      CustomSnackbar.showError(context, 'Error al cargar los premios asignados');
+    }
+  } catch (error) {
+    CustomSnackbar.showError(context, 'Error al obtener los premios asignados: $error');
   }
 }
 
@@ -268,13 +316,15 @@ Future<void> _onSave() async {
               padding: const EdgeInsets.only(bottom: 20.0),
               child: SizedBox(
                 width: MediaQuery.of(context).size.width * 0.9, // 80% del ancho de la pantalla
-                child: CustomDropdownButton<String>(
+                child: CustomDropdownButton<Map<String, dynamic>>(
                   labelText: 'Seleccione el Premio',
-                  items: prizeNames,
+                  items: prizeNames,  // Aquí pasamos la lista de premios directamente
                   selectedValue: selectedPrize,
                   onChanged: (newValue) {
+                    print("onChanged llamado con: $newValue");  // Imprime el valor que se recibe
                     setState(() {
-                      selectedPrize = newValue;
+                      selectedPrize = newValue;  
+                      print("Premio seleccionado: $selectedPrize"); // Verifica el valor seleccionado// Ahora 'selectedPrize' tiene el objeto con 'id_prize' y 'name_prize'
                     });
                   },
                   itemTextStyle: const TextStyle(

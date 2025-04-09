@@ -143,3 +143,39 @@ exports.saveAssignedPrizes = async (req, res) => {
     return res.status(500).json({ message: 'Error al guardar los premios asignados', error: error.message });
   }
 };
+
+// Endpoint para obtener los premios asignados para un sorteo //verificar no funciona
+exports.getAssignedPrizes = async (req, res) => {
+  const { id_giveaway } = req.params;
+
+  try {
+    // Obtener los premios asignados al sorteo
+    const assignedPrizes = await GiveawayPrize.findAll({
+      where: { id_giveaway: id_giveaway },
+      include: [{
+        model: Prize, // Asegúrate de que el modelo Prize está relacionado con GiveawayPrize
+        attributes: ['name_prize'],
+      }],
+      order: [['rank', 'ASC']] // Asegúrate de ordenar por rank
+    });
+
+    if (!assignedPrizes.length) {
+      return res.status(404).json({ message: 'No hay premios asignados.' });
+    }
+
+    // Formateamos la respuesta para que incluya el nombre del premio y el orden
+    const formattedPrizes = assignedPrizes.map(prize => ({
+      id_prize: prize.id_prize,
+      name_prize: prize.Prize.name_prize,
+      rank: prize.rank,
+    }));
+
+    return res.status(200).json({
+      message: 'Premios asignados obtenidos correctamente.',
+      data: formattedPrizes,
+    });
+  } catch (error) {
+    console.error('Error al obtener los premios asignados:', error);
+    return res.status(500).json({ message: 'Error al obtener los premios asignados.', error: error.message });
+  }
+};
