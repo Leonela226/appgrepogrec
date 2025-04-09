@@ -38,116 +38,12 @@ exports.countAssignedPrizes = async (req, res) => {
   }
 };
 
-// Asignar un premio al sorteo
-exports.assignPrize = async (req, res) => {
-  const { id_giveaway, prize_id, rank } = req.body; // Datos del premio y sorteo
-
-  try {
-    // Verificar que el sorteo existe
-    const giveaway = await Giveaway.findByPk(id_giveaway);
-    if (!giveaway) {
-      return res.status(404).json({ message: 'Sorteo no encontrado' });
-    }
-
-    // Verificar que el premio existe
-    const prize = await GiveawayPrize.findByPk(prize_id);
-    if (!prize) {
-      return res.status(404).json({ message: 'Premio no encontrado' });
-    }
-
-    // Verificar que el premio no haya sido asignado ya
-    const existingAssignment = await GiveawayPrize.findOne({
-      where: { id_giveaway: id_giveaway, prize_id: prize_id }
-    });
-
-    if (existingAssignment) {
-      return res.status(400).json({ message: 'Este premio ya ha sido asignado al sorteo.' });
-    }
-
-    // Asignar el premio al sorteo
-    await GiveawayPrize.create({
-      id_giveaway: id_giveaway,
-      prize_id: prize_id,
-      rank: rank
-    });
-
-    return res.status(200).json({ message: 'Premio asignado correctamente al sorteo.' });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: 'Error al asignar el premio.', error: error.message });
-  }
-};
-
-
-
-
-
-
-
-/* Controlador para asignar un premio a un sorteo
-exports.assignPrize = async (req, res) => {
-  const { id_giveaway } = req.params; // ID del sorteo pasado por parámetro
-  const { id_prize, rank } = req.body; // Datos enviados para asignar el premio
-
-  try {
-    // Verificar que el sorteo existe
-    const giveaway = await Giveaway.findByPk(id_giveaway);
-    if (!giveaway) {
-      return res.status(404).json({ message: 'Sorteo no encontrado' });
-    }
-
-    // Verificar la cantidad de premios asignados al sorteo
-    const assignPrizes = await GiveawayPrize.count({
-      where: { id_giveaway: id_giveaway }
-    });
-
-    const maxPrizes = giveaway.prize_count; // Suponiendo que tienes un campo 'prize_count' en Giveaway
-
-    // Verificar que no se asignen más premios de los permitidos
-    if (assignPrizes >= maxPrizes) {
-      return res.status(400).json({
-        message: `No se pueden asignar más premios. El sorteo ya tiene ${maxPrizes} premios asignados.`
-      });
-    }
-
-    // Verificar que el rank no esté ya asignado
-    const rankReal = await GiveawayPrize.findOne({
-      where: { id_giveaway: id_giveaway, rank: rank },
-    });
-
-    if (rankReal) {
-      return res.status(400).json({ message: `El rank ${rank} ya está asignado en este sorteo.` });
-    }
-
-    // Verificar que el rank esté dentro del rango permitido
-    if (rank < 1 || rank > maxPrizes) {
-      return res.status(400).json({ message: `El rank debe estar entre 1 y ${maxPrizes}.` });
-    }
-
-    // Crear el nuevo registro de asignación de premio
-    const newGiveawayPrize = await GiveawayPrize.create({
-      id_giveaway: id_giveaway,
-      id_prize: id_prize,
-      rank: rank,
-    });
-
-    return res.status(201).json({
-      message: 'Premio asignado correctamente al sorteo',
-      data: newGiveawayPrize,
-    });
-
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: 'Error al asignar el premio', error: error.message });
-  }
-}; */
-
 // Obtener todos los premios disponibles
 exports.getAllPrizes = async (req, res) => {
   try {
     // Obtener todos los premios de la base de datos
     const allPrizes = await Prize.findAll({
-      attributes: ['name_prize'] // Solo obtener el nombre del premio
+      attributes: ['id_prize', 'name_prize'] // Solo obtener el nombre del premio
     });
 
 
@@ -164,42 +60,6 @@ exports.getAllPrizes = async (req, res) => {
     console.error('Error al obtener los premios:', error);  // Esto muestra el error básico
     console.error('Stack trace:', error.stack);  // Esto te da el trace completo del error
     return res.status(500).json({ message: 'Error al obtener los premios', error: error.message });
-  }
-};
-
-// Obtener todos los premios asignados a un sorteo
-exports.getAllAssignedPrizes = async (req, res) => {
-  const { id_giveaway } = req.params; // ID del sorteo pasado por parámetro
-
-  try {
-    // Verificar que el sorteo existe
-    const giveaway = await Giveaway.findByPk(id_giveaway);
-    if (!giveaway) {
-      return res.status(404).json({ message: 'Sorteo no encontrado' });
-    }
-
-    // Obtener todos los premios asignados a este sorteo
-    const assignedPrizes = await GiveawayPrize.findAll({
-      where: { id_giveaway: id_giveaway },
-      include: [
-        { model: Prize, attributes: ['id_prize', 'name_prize'] },  // Incluir los detalles del premio
-        { model: Giveaway, attributes: ['id_giveaway', 'name_giveaway'] },  // Incluir los detalles del sorteo
-      ],
-      order: [['rank', 'ASC']],  // Ordenar por el rango (rank) si lo necesitas
-    });
-
-    if (assignedPrizes.length === 0) {
-      return res.status(404).json({ message: 'No hay premios asignados a este sorteo.' });
-    }
-
-    return res.status(200).json({
-      message: 'Premios asignados obtenidos correctamente.',
-      data: assignedPrizes,
-    });
-
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: 'Error al obtener los premios asignados.', error: error.message });
   }
 };
 
@@ -223,5 +83,63 @@ exports.getGiveawayById = async (req, res) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Error al obtener el sorteo', error: error.message });
+  }
+};
+
+
+// Asignar múltiples premios al sorteo
+exports.saveAssignedPrizes = async (req, res) => {
+  const { id_giveaway, assignedPrizes } = req.body;
+
+  try {
+    // Verificar que el sorteo existe
+    const giveaway = await Giveaway.findByPk(id_giveaway);
+    if (!giveaway) {
+      return res.status(404).json({ message: 'Sorteo no encontrado' });
+    }
+
+    // Verificar que no se exceda la cantidad máxima de premios
+    const assignedPrizesCount = assignedPrizes.length;
+    if (assignedPrizesCount < giveaway.prize_count) {
+      return res.status(400).json({
+        message: `Faltan premios por asignar. Este sorteo tiene ${giveaway.prize_count} premios en total.`
+      });
+    }
+
+    // Verificar que no se asignen más premios de los permitidos
+    if (assignedPrizesCount > giveaway.prize_count) {
+      return res.status(400).json({
+        message: `No se pueden asignar más de ${giveaway.prize_count} premios.`
+      });
+    }
+
+    // Verificar si ya existen premios asignados para este sorteo
+    const existingAssignments = await GiveawayPrize.findAll({
+      where: {
+        id_giveaway: id_giveaway,
+        id_prize: assignedPrizes.map(prize => prize.prize_id),
+      },
+    });
+
+    if (existingAssignments.length > 0) {
+      return res.status(400).json({
+        message: 'Algunos premios ya han sido asignados a este sorteo.',
+      });
+    }
+
+    // Guardar los premios asignados
+    const assignments = await GiveawayPrize.bulkCreate(assignedPrizes.map((prize) => ({
+      id_giveaway: id_giveaway,
+      id_prize: prize.prize_id,
+      rank: prize.rank,
+    })));
+
+    return res.status(201).json({
+      message: 'Premios asignados correctamente.',
+      data: assignments,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Error al guardar los premios asignados', error: error.message });
   }
 };
