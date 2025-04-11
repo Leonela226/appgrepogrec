@@ -15,6 +15,7 @@ router.get('/prizes', assignPrizesController.getAllPrizes);
 router.post('/save',assignPrizesController.saveAssignedPrizes)
 
 // ruta para obtener todos los premios asignados a un sorteo en especifico
-router.get('/assignPrize',assignPrizesController.getAssignedPrizes); 
+router.get('/assignPrize/:id_giveaway', assignPrizesController.getAssignedPrizes);
+
 
 module.exports = router;

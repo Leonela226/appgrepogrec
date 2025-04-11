@@ -153,14 +153,18 @@ exports.getAssignedPrizes = async (req, res) => {
     const assignedPrizes = await GiveawayPrize.findAll({
       where: { id_giveaway: id_giveaway },
       include: [{
-        model: Prize, // Asegúrate de que el modelo Prize está relacionado con GiveawayPrize
+        model: Prize,
         attributes: ['name_prize'],
       }],
-      order: [['rank', 'ASC']] // Asegúrate de ordenar por rank
+      order: [['rank', 'ASC']]
     });
 
-    if (!assignedPrizes.length) {
-      return res.status(404).json({ message: 'No hay premios asignados.' });
+    // Si no hay premios asignados, respondemos con un estado 200 y un mensaje vacío
+    if (assignedPrizes.length === 0) {
+      return res.status(200).json({
+        message: 'No hay premios asignados',
+        data: [] // Arreglo vacío cuando no hay premios asignados
+      });
     }
 
     // Formateamos la respuesta para que incluya el nombre del premio y el orden
