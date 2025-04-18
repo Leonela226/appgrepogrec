@@ -60,11 +60,20 @@ VALUES
     ('Fressco Nacaome', 'Barrio San José contiguo al Parque los Garrobos', 3, 3);
 
 
-SELECT * from prizes;       
+SELECT * from users;       
+
+INSERT INTO users (
+    name_user, email_user, google_uid, firebase_uid, profile_photo_url,
+    phone_number, date_birth, status_user, id_rol
+) VALUES (
+    'user admin', 'useradmin@gmail.com', NULL, 'SteUbe2DPWNYLdTMRM8N84uw92T2',
+    NULL, '99000100', '2000-12-15', 'activo', 1
+);
 
 
 
 
-INSERT INTO prizes (name_prize)
-VALUES ('Viaje a Roatán');
+
+
+
 

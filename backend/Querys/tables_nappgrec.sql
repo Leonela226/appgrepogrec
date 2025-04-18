@@ -89,13 +89,14 @@ CREATE TABLE users (
 
 CREATE TABLE giveaways(
     id_giveaway INT AUTO_INCREMENT PRIMARY KEY,
+    code_giveaway VARCHAR(100) UNIQUE, /*código relacionado con la creaación del código qr*/
     name_giveaway VARCHAR(100) NOT NULL, /* nombre del sorteo*/
     image_url VARCHAR(500),
     description_giveaway TEXT, /* descripción del sorteo*/
     start_date_giveaway DATE, /* Inicio del periodo de participación*/
     end_date_giveaway DATE, /* Fin del periodo de participación*/
     draw_date_giveaway DATE, /* Momento exacto del sorteo*/
-    status_giveaway ENUM('pendiente', 'activo', 'finalizado', 'cancelado') NOT NULL DEFAULT 'activo', /*Estado del sorteo*/
+    status_giveaway ENUM('pendiente', 'activo', 'realizado', 'cancelado') NOT NULL DEFAULT 'activo', /*Estado del sorteo*/
     prize_count INT NOT NULL,  /*total de premios que se sortearán en el evento, (puede ser 1 o más)*/
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, /*Fecha de creación del registro*/
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP /*Fecha de última actualización*/
@@ -103,13 +104,14 @@ CREATE TABLE giveaways(
 
 CREATE TABLE codes_qr(
     id_codes_qr INT AUTO_INCREMENT PRIMARY KEY,
-    value_code_qr VARCHAR(255) NOT NULL,
-    id_giveaway INT, /*relaciona el código QR con el sorteo*/
-    FOREIGN KEY (id_giveaway) REFERENCES giveaways(id_giveaway),
+    value_code_qr VARCHAR(255) NOT NULL UNIQUE,
+    code_giveaway VARCHAR(100) NOT NULL, /*relaciona el código QR con el sorteo*/
+    FOREIGN KEY (code_giveaway) REFERENCES giveaways(code_giveaway),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, /*Fecha de creación del registro*/
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP /*Fecha de última actualización*/
 );
 
+    
 CREATE TABLE prizes(
     id_prize INT AUTO_INCREMENT PRIMARY KEY,
     name_prize VARCHAR(100) NOT NULL,
