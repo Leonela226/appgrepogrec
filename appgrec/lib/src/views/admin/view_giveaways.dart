@@ -58,6 +58,7 @@ class ViewGiveawaysScreenState extends State<ViewGiveawaysScreen> {
                   'end_date': giveaway['end_date_giveaway'] ?? 'No disponible',
                   'draw_date': giveaway['draw_date_giveaway'] ?? 'No disponible',
                   'status': giveaway['status_giveaway'] ?? 'No disponible',
+                  'code_giveaway': giveaway['code_giveaway'] ?? 'No disponible',
                 };
               }).toList();
               filteredGiveaways = List.from(giveaways);
@@ -206,6 +207,7 @@ class ViewGiveawaysScreenState extends State<ViewGiveawaysScreen> {
                                         Text('Fin participación: ${giveaway['end_date']}'),
                                         Text('Fecha del sorteo: ${giveaway['draw_date']}'),
                                         Text('Estado: ${giveaway['status']}'),
+                                        Text('Código: ${giveaway['code_giveaway']}'),
                                       ],
                                     ),
                                   ),

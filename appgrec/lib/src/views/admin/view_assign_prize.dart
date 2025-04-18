@@ -96,7 +96,7 @@ class AssignPrizeScreenState extends State<AssignPrizeScreen> {
           int assignedFromDb = data['assignedPrizesCount'];
           int maxPrizes = prizeCount ?? 0;
           int assignedLocally = assignedPrizes.length;
-
+          
           if (hasReachedMaxPrizes(assignedFromDb, assignedLocally, maxPrizes)) {
             CustomSnackbar.showWarning(
               context,

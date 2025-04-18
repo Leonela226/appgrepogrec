@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
+  final bool automaticallyImplyLeading;
   final String title;
 
   const CustomAppBar({
     super.key,
     this.title = "App Grec",
+    this.automaticallyImplyLeading = true,  // Por defecto está activado
   });
 
   @override
@@ -14,7 +16,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     double screenHeight = MediaQuery.of(context).size.height;
 
     return AppBar(
-      //automaticallyImplyLeading: false,
+      automaticallyImplyLeading: automaticallyImplyLeading,  // Usa el valor pasado
       backgroundColor: Colors.white,
       elevation: 4,
       title: Row(
@@ -29,7 +31,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           Text(
             title,
             style: TextStyle(
-              fontFamily: 'TitilliumWeb-Bold',
+              fontFamily: 'TitilliumWeb', // Asegúrate de que sea 'TitilliumWeb' y no 'TitilliumWeb-Bold'
+              fontWeight: FontWeight.bold, // Puedes usar fontWeight si quieres aplicar negrita
               fontSize: screenWidth * 0.05,
               color: Colors.black,
             ),
