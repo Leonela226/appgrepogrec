@@ -20,7 +20,7 @@ class CustomBottomNavBarState extends State<CustomBottomNavBar> {
     int newIndex = 0;
     if (currentRoute == Routes.clientHome) {
       newIndex = 0;
-    } else if (currentRoute == Routes.profileusers) {
+    } else if (currentRoute == Routes.profileUsers) {
       newIndex = 1;
     } 
     // else if (currentRoute == Routes.scanner) {
@@ -47,10 +47,10 @@ class CustomBottomNavBarState extends State<CustomBottomNavBar> {
         newRoute = Routes.clientHome;
         break;
       case 1:
-        newRoute = Routes.profileusers;
+        newRoute = Routes.profileUsers;
         break;
-      // case 2:
-      //   newRoute = Routes.scanner;
+      case 2:
+         newRoute = Routes.clientQRscan;
       //   break;
       // case 3:
       //   newRoute = Routes.sorteos;

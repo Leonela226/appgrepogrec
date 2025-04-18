@@ -15,6 +15,7 @@ class Routes {
   static const String viewPrizesScreen = '/view_prizes';
   static const String viewGiveawaysScreen = '/view_giveaways';
   static const String userManagementScreen = '/user_management';
+  static const String startGiveawayScreen = '/start_giveaway';
   //static const String moderadorDashboard = '/moderador_dasboard';
 
   

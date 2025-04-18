@@ -1,6 +1,7 @@
 import 'package:appgrec/src/providers/forgot_password.dart';
 import 'package:appgrec/src/views/admin/dashboard.dart';
 import 'package:appgrec/src/views/admin/dashboard_client.dart';
+import 'package:appgrec/src/views/admin/start_giveaway.dart';
 import 'package:appgrec/src/views/admin/user_management.dart';
 import 'package:appgrec/src/views/admin/view_giveaways.dart';
 import 'package:appgrec/src/views/admin/view_prizes.dart';
@@ -26,4 +27,5 @@ Map<String, Widget Function(BuildContext)> appRoutes = {
   Routes.viewPrizesScreen: (_) => ViewPrizesScreen(),
   Routes.viewGiveawaysScreen: (_) => ViewGiveawaysScreen(),
   Routes.userManagementScreen: (_) => UserManagementScreen(),
+  Routes.startGiveawayScreen: (_) => StartGiveawayScreen(),
 };

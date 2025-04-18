@@ -3,11 +3,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthProvider with ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   User? _user;
-  String? _userRole; // Para almacenar el id del rol del usuario
+  String? _userRole;
 
   AuthProvider() {
     _auth.authStateChanges().listen(_onAuthStateChanged);
@@ -15,9 +16,15 @@ class AuthProvider with ChangeNotifier {
 
   User? get user => _user;
   bool get isAuthenticated => _user != null;
-  String? get userRole => _userRole; // Getter para el id_rol del usuario
+  String? get userRole => _userRole;
 
-  // Método para registrar al usuario con correo
+  // ✅ Obtener id_user almacenado
+  Future<int?> getUserIdFromPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt('id_user');
+  }
+
+  // ✅ Registrar usuario
   Future<String?> registerWithEmail(
     String email,
     String password,
@@ -26,15 +33,13 @@ class AuthProvider with ChangeNotifier {
     String birthDate,
   ) async {
     try {
-      // 1️⃣ Registrar el usuario en Firebase y obtener el firebase_uid
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
       _user = userCredential.user;
-      String uid = _user!.uid;
+      String uid = _user?.uid ?? '';
 
-      // 2️⃣ Enviar los datos al backend, incluyendo el firebase_uid
       var response = await http.post(
         Uri.parse('${dotenv.env['FRONTEND_URL']}/api/auth/register'),
         headers: {"Content-Type": "application/json"},
@@ -48,10 +53,11 @@ class AuthProvider with ChangeNotifier {
       );
 
       if (response.statusCode == 201) {
-        return null; // Registro exitoso
+        return null;
       } else {
-        // Si el registro en la base de datos falla, se elimina el usuario de Firebase
-        await _user!.delete(); // Eliminar usuario de Firebase
+        if (_user != null) {
+          await _user!.delete();
+        }
         return "Error en el servidor: ${response.body}";
       }
     } on FirebaseAuthException catch (e) {
@@ -61,7 +67,48 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  // Método para obtener el id_rol del usuario desde el backend
+  // ✅ Iniciar sesión y guardar id_user
+  Future<String?> loginWithEmail(String email, String password) async {
+    try {
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      _user = userCredential.user;
+
+      // 👉 Obtener id_user desde backend
+      if (_user != null) {
+        final response = await http.get(
+          Uri.parse('${dotenv.env['FRONTEND_URL']}/api/auth/by-uid/${_user!.uid}'),
+          headers: {"Content-Type": "application/json"},
+        );
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          final idUser = data['id_user'];
+
+
+          // 💾 Guardar id_user en SharedPreferences
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setInt('id_user', idUser);
+
+          await fetchUserRole(); // Obtener rol
+          notifyListeners();
+          return null;
+        } else {
+          return "Error al obtener la información del usuario: ${response.body}";
+        }
+      } else {
+        return 'Error de usuario no encontrado';
+      }
+    } on FirebaseAuthException catch (e) {
+      return _getErrorMessage(e);
+    } catch (e) {
+      return 'Error desconocido: $e';
+    }
+  }
+
+  // ✅ Obtener rol
   Future<void> fetchUserRole() async {
     if (_user != null) {
       try {
@@ -73,30 +120,44 @@ class AuthProvider with ChangeNotifier {
         if (response.statusCode == 200) {
           var data = jsonDecode(response.body);
           _userRole = data['id_rol'].toString();
-          notifyListeners();
         } else {
           _userRole = null;
-          notifyListeners();
           debugPrint("Error obteniendo rol: ${response.body}");
         }
       } catch (e) {
+        _userRole = null;
         debugPrint("Error en la conexión: $e");
-        _userRole = null; // Es importante también manejar esta variable en caso de error.
-        notifyListeners();
       }
+      notifyListeners();
     }
   }
 
-  // Inicio de sesión
-  Future<String?> loginWithEmail(String email, String password) async {
+  // ✅ Logout
+  Future<void> logout() async {
+    await _auth.signOut();
+    _user = null;
+    _userRole = null;
+
+    // 🔥 Limpiar id_user de SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('id_user');
+
+    notifyListeners();
+  }
+
+  // ✅ Detectar cambio de estado
+  void _onAuthStateChanged(User? firebaseUser) {
+    _user = firebaseUser;
+    if (_user != null) {
+      fetchUserRole();
+    }
+    notifyListeners();
+  }
+
+  // ✅ Recuperar contraseña
+  Future<String?> resetPassword(String email) async {
     try {
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-      _user = userCredential.user;
-      await fetchUserRole();  // Obtener el rol después de iniciar sesión
-      notifyListeners();
+      await _auth.sendPasswordResetEmail(email: email);
       return null;
     } on FirebaseAuthException catch (e) {
       return _getErrorMessage(e);
@@ -105,51 +166,18 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<void> logout() async {
-    await _auth.signOut();
-    _user = null;
-    _userRole = null; // Limpiar el rol al hacer logout
-    notifyListeners();
-  }
-
-  void _onAuthStateChanged(User? firebaseUser) {
-    _user = firebaseUser;
-    if (_user != null) {
-      fetchUserRole();  // Obtener el rol cuando el estado de autenticación cambie
-    }
-    notifyListeners();
-  }
-
-  // Recuperación de contraseña
-  Future<String?> resetPassword(String email) async {
-    try {
-      await _auth.sendPasswordResetEmail(email: email);
-      return null; // Éxito
-    } on FirebaseAuthException catch (e) {
-      return _getErrorMessage(e); // Manejo de errores
-    } catch (e) {
-      return 'Error desconocido: $e'; // Manejo de errores generales
-    }
-  }
-
+  // ✅ Mapear errores de Firebase
   String _getErrorMessage(FirebaseAuthException e) {
     Map<String, String> errorMessages = {
       'invalid-email': 'El correo electrónico no es válido.',
-      'too-many-requests':
-          'Has realizado demasiados intentos. Inténtalo más tarde.',
-      'network-request-failed':
-          'Problema de conexión. Verifica tu conexión a Internet.',
-      'invalid-credential': 'El correo o la contraseña son incorrectos.',
-      'email-already-in-use':
-          'Este correo electrónico ya está registrado. Por favor, utiliza otro correo.'
+      'too-many-requests': 'Demasiados intentos. Intenta más tarde.',
+      'network-request-failed': 'Verifica tu conexión a Internet.',
+      'invalid-credential': 'Correo o contraseña incorrectos.',
+      'email-already-in-use': 'Este correo ya está registrado.',
     };
 
     debugPrint('Firebase Error Code: ${e.code}');
 
-    if (errorMessages.containsKey(e.code)) {
-      return errorMessages[e.code]!; 
-    } else {
-      return 'Error desconocido: ${e.message ?? "Inténtalo de nuevo más tarde."}';
-    }
+    return errorMessages[e.code] ?? 'Error desconocido: ${e.message ?? "Inténtalo más tarde."}';
   }
 }
