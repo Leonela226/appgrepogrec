@@ -6,12 +6,14 @@ const path = require("path");
 const http = require("http"); // Para crear el servidor HTTP
 const { Server } = require("socket.io"); // Importar socket.io
 const sequelize = require("./config/database");
-const authRoute = require("./routes/auth_route");
-const userRoleRoute = require("./routes/user_rol_route");
-const carouselRoute = require("./routes/carousel_images_route");
-const prizeRoute = require("./routes/prizes_routes");
-const giveawayRoute = require("./routes/view_giveaway_route");
-const assignRoute = require("./routes/assign_prizes_route");
+const authRoute = require("./routes/common/auth_route");
+const userRoleRoute = require("./routes/common/user_rol_route");
+const carouselRoute = require("./routes/admin/carousel_images_route");
+const prizeRoute = require("./routes/admin/prizes_routes");
+const giveawayRoute = require("./routes/admin/view_giveaway_route");
+const assignRoute = require("./routes/admin/assign_prizes_route");
+const scannerRoute = require("./routes/client/scanner_qr_route");
+const participationRoute = require("./routes/client/participation_route");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -36,13 +38,19 @@ app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 //app.use('/uploads/prizes_images', express.static(path.join(__dirname, 'uploads', 'prizes_images')));
 
-// Rutas
+// Rutas admin
 app.use('/api/auth', authRoute);
 app.use('/api/user', userRoleRoute);
 app.use('/api/carousel', carouselRoute);
 app.use('/api/prizes',prizeRoute); 
 app.use('/api/giveaways',giveawayRoute); 
 app.use('/api/assign',assignRoute);
+
+//rutas cliente
+app.use('/api/scanner', scannerRoute);
+app.use('/api/participation', participationRoute);
+
+
 
 // WebSockets: escuchar conexiones
 io.on("connection", (socket) => {
