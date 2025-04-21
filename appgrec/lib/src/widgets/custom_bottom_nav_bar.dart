@@ -88,7 +88,7 @@ class CustomBottomNavBarState extends State<CustomBottomNavBar> {
             GButton(icon: CupertinoIcons.home, text: 'Inicio'),
             GButton(icon: CupertinoIcons.profile_circled, text: 'Perfil'),
             GButton(icon: CupertinoIcons.camera, text: 'Escáner'), // Ruta comentada
-            GButton(icon: CupertinoIcons.gift, text: 'Sorteos'), // Ruta comentada
+            GButton(icon: CupertinoIcons.doc_text, text: 'Actividad'), // Ruta comentada
             GButton(icon: CupertinoIcons.bell, text: 'Notificaciones'), // Ruta comentada
           ],
         ),
