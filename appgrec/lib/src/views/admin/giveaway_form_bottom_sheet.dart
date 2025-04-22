@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io'; // Necesario para trabajar con archivos
+import 'package:appgrec/src/utils/validators/view_giveaway_validators.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart'; // Importa el paquete image_picker
 import 'package:appgrec/src/widgets/custom_buttons_sec.dart';
@@ -26,30 +27,76 @@ class GiveawayModalState extends State<GiveawayModal> {
   final TextEditingController _startDateController = TextEditingController();
   final TextEditingController _endDateController = TextEditingController();
   final TextEditingController _drawDateController = TextEditingController();
-  int? _prizeCount; // Variable para almacenar la cantidad de premios seleccionados
+  
+  int? _prizeCount;
   File? _imageFile;
+
+  // Lista de sucursales obtenida del backend
+  List<Map<String, dynamic>> _branches = [];
+  
+  // Lista para almacenar las sucursales seleccionadas
+  final List<int> _selectedBranches = [];
+
 
   final ImagePicker _picker = ImagePicker();
 
+  @override
+  void initState() {
+    super.initState();
+    _fetchBranches(); // Cargar las sucursales cuando el modal se crea
+  }
+
+  // Función para obtener las sucursales desde el backend
+  Future<void> _fetchBranches() async {
+    final String? baseUrl = dotenv.env['FRONTEND_URL'];
+    final response = await http.get(Uri.parse('$baseUrl/api/branch/all'));
+
+    if (response.statusCode == 200) {
+
+      final Map<String, dynamic> responseData = json.decode(response.body); // Asegúrate de que responseData esté definida correctamente
+
+    // Accede a la clave 'data' que contiene la lista de sucursales
+    final List<dynamic> branchList = responseData['data'];  // Renombramos la variable a branchList
+    
+      print('Branch Data: $branchList');
+
+      setState(() {
+        _branches = List<Map<String, dynamic>>.from(branchList); // Asigna la lista de sucursales a _branches
+      });
+    } else {
+      CustomSnackbar.showError(context, 'Error al obtener las sucursales.');
+    }
+  }
+
+  // Función para manejar el cambio en el estado de los checkboxes
+  void _onBranchSelected(bool? selected, int branchId) {
+    setState(() {
+      if (selected == true) {
+        _selectedBranches.add(branchId);
+      } else {
+        _selectedBranches.remove(branchId);
+      }
+    });
+  }
 
   // Validación de campos vacíos
   bool _validateFields() {
-    if (_nameController.text.isEmpty ||
-        _prizeCount == null || // Verificar si se seleccionó una cantidad de premios
-        _startDateController.text.isEmpty ||
-        _endDateController.text.isEmpty ||
-        _drawDateController.text.isEmpty) {
-      CustomSnackbar.showWarning(context, 'Todos los campos son requeridos.');
+    return validateFields(
+      context,
+      _nameController,
+      _prizeCount,
+      _startDateController,
+      _endDateController,
+      _drawDateController,
+    );
+  }
+
+  bool _validateDates() {
+    if (validateStartDate(_startDateController.text, context) != null ||
+        validateEndDate(_endDateController.text, context, _startDateController) != null ||
+        validateDrawDate(_drawDateController.text, context, _endDateController) != null) {
       return false;
     }
-
-    // Validaciones de fechas
-    if (validateStartDate(_startDateController.text) != null ||
-        validateEndDate(_endDateController.text) != null ||
-        validateDrawDate(_drawDateController.text) != null) {
-      return false;
-    }
-
     return true;
   }
 
@@ -68,54 +115,6 @@ class GiveawayModalState extends State<GiveawayModal> {
     }
   }
 
-  // Validación de la fecha de inicio
-  String? validateStartDate(String? value) {
-    if (value == null || value.isEmpty) {
-      CustomSnackbar.showError(context, 'Por favor, seleccione la fecha de inicio.');
-      return ''; 
-    }
-    DateTime startDate = DateFormat('yyyy-MM-dd').parse(value);
-    DateTime currentDate = DateTime.now();
-
-    // Comparar solo las fechas, sin importar la hora
-    if (startDate.isBefore(DateTime(currentDate.year, currentDate.month, currentDate.day))) {
-      CustomSnackbar.showWarning(context, 'La fecha de inicio no puede ser anterior al día de hoy.');
-      return ''; 
-    }
-    return null;
-  }
-
-  // Validación de la fecha de fin
-  String? validateEndDate(String? value) {
-    if (value == null || value.isEmpty) {
-      CustomSnackbar.showError(context, 'Por favor, seleccione la fecha de fin.');
-      return ''; 
-    }
-    DateTime endDate = DateFormat('yyyy-MM-dd').parse(value);
-    DateTime startDate = DateFormat('yyyy-MM-dd').parse(_startDateController.text);
-    if (endDate.isBefore(startDate)) {
-      CustomSnackbar.showWarning(context, 'La fecha de fin debe ser igual o posterior a la fecha de inicio.');
-      return ''; 
-    }
-    return null;
-  }
-
-  // Validación de la fecha del sorteo
-  String? validateDrawDate(String? value) {
-    if (value == null || value.isEmpty) {
-      CustomSnackbar.showError(context, 'Por favor, seleccione la fecha del sorteo.');
-      return ''; 
-    }
-    DateTime drawDate = DateFormat('yyyy-MM-dd').parse(value);
-    DateTime endDate = DateFormat('yyyy-MM-dd').parse(_endDateController.text);
-    if (drawDate.isBefore(endDate)) {
-      CustomSnackbar.showWarning(context, 'La fecha del sorteo debe ser igual o posterior a la fecha de fin.');
-      return ''; 
-    }
-    return null;
-  }
-
-
   // Seleccionar imagen
   Future<void> _pickImage() async {
     final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
@@ -128,7 +127,7 @@ class GiveawayModalState extends State<GiveawayModal> {
 
   // Crear el sorteo
   Future<void> _createGiveaway() async {
-    if (!_validateFields()) {
+    if (!_validateFields() || !_validateDates()) {
       return;
     }
 
@@ -146,7 +145,6 @@ class GiveawayModalState extends State<GiveawayModal> {
       return;
     }
 
-
     // Formatear las fechas para asegurarse de que solo se envíe la parte de la fecha (yyyy-MM-dd)
     String formattedStartDate = DateFormat('yyyy-MM-dd').format(DateTime.parse(_startDateController.text));
     String formattedEndDate = DateFormat('yyyy-MM-dd').format(DateTime.parse(_endDateController.text));
@@ -154,12 +152,13 @@ class GiveawayModalState extends State<GiveawayModal> {
 
     var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/api/giveaways/create'));
 
-      request.fields['name'] = _nameController.text;
-      request.fields['description'] = _descriptionController.text;
-      request.fields['prize_count'] = _prizeCount.toString();
-      request.fields['start_date'] = formattedStartDate;
-      request.fields['end_date'] = formattedEndDate;
-      request.fields['draw_date'] = formattedDrawDate;
+    request.fields['name'] = _nameController.text;
+    request.fields['description'] = _descriptionController.text;
+    request.fields['prize_count'] = _prizeCount.toString();
+    request.fields['start_date'] = formattedStartDate;
+    request.fields['end_date'] = formattedEndDate;
+    request.fields['draw_date'] = formattedDrawDate;
+    request.fields['selected_branches'] = jsonEncode(_selectedBranches); // Agregar sucursales seleccionadas
 
     if (_imageFile != null) {
       final mimeType = lookupMimeType(_imageFile!.path);
@@ -172,7 +171,7 @@ class GiveawayModalState extends State<GiveawayModal> {
       );
     }
 
-     var response = await request.send();
+    var response = await request.send();
 
     if (response.statusCode == 201) {
       final responseBody = await response.stream.bytesToString();
@@ -199,11 +198,11 @@ class GiveawayModalState extends State<GiveawayModal> {
             padding: const EdgeInsets.all(16.0),
             child: Column(
               children: [
-                Text("Crear Sorteo", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                Text("Crear Sorteo", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, fontFamily: 'TitilliumWeb')),
                 const SizedBox(height: 10),
 
                 GestureDetector(
-                  onTap: _pickImage, // Selección de imagen
+                  onTap: _pickImage,
                   child: _imageFile == null
                   ? Container(
                     height: 100,
@@ -225,7 +224,7 @@ class GiveawayModalState extends State<GiveawayModal> {
                   minLines: 3,
                 ),
                 const SizedBox(height: 10),
-                CustomDropdownButton<int>( // Dropdown para la cantidad de premios
+                CustomDropdownButton<int>( 
                   labelText: 'Cantidad de premios',
                   icon: Icons.format_list_numbered,
                   selectedValue: _prizeCount,
@@ -234,7 +233,7 @@ class GiveawayModalState extends State<GiveawayModal> {
                       _prizeCount = newValue;
                     });
                   },
-                  items: List.generate(10, (index) => index + 1), // Lista de valores (1 a 10)
+                  items: List.generate(10, (index) => index + 1),
                 ),
                 const SizedBox(height: 10),
                 GestureDetector(
@@ -244,7 +243,6 @@ class GiveawayModalState extends State<GiveawayModal> {
                       labelText: 'Fecha de inicio',
                       icon: Icons.calendar_today,
                       controller: _startDateController,
-                      validator: validateStartDate,
                     ),
                   ),
                 ),
@@ -256,7 +254,6 @@ class GiveawayModalState extends State<GiveawayModal> {
                       labelText: 'Fecha de fin',
                       icon: Icons.calendar_today,
                       controller: _endDateController,
-                      validator: validateEndDate,
                     ),
                   ),
                 ),
@@ -268,11 +265,43 @@ class GiveawayModalState extends State<GiveawayModal> {
                       labelText: 'Fecha del sorteo',
                       icon: Icons.calendar_today,
                       controller: _drawDateController,
-                      validator: validateDrawDate,
                     ),
                   ),
                 ),
                 const SizedBox(height: 20),
+
+                // Sección de sucursales con checkboxes
+                if (_branches.isNotEmpty) ...[
+                  Text("Selesccione la disponibilidad del sorteo", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, fontFamily: 'TitilliumWeb')),
+                  const SizedBox(height: 5),
+                  Column(
+                    children: _branches.map((branch) {
+                     final String branchName = branch['name_branch'] ?? 'Sin nombre'; // Valida si el nombre es nulo
+                      final int branchId = branch['id_branch'] ?? -1; // Valida si el id es null
+
+                      return CheckboxListTile(
+                        title: Text(branchName,
+                        style: TextStyle(
+                           fontFamily: 'TitilliumWeb',  // Tipo de fuente
+                           fontSize: 14,  // Tamaño de la fuente
+                           fontWeight: FontWeight.w600,  // Peso de la fuente
+                           color: Colors.black,  // Color de la fuente
+                        ),
+                      ),
+                        value: _selectedBranches.contains(branchId),
+                        onChanged: (bool? selected) {
+                          _onBranchSelected(selected, branchId);
+                        },
+                        visualDensity: VisualDensity(vertical: -3), // Reduce el espacio vertical
+                        // Cambiar color de selección
+                        activeColor: Colors.green,        // Color del check y fondo cuando está seleccionado
+                        checkColor: Colors.white,         // Color del ícono del check                                    
+                      );
+                    }).toList(),
+                  ),
+                ],
+                const SizedBox(height: 20),
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [

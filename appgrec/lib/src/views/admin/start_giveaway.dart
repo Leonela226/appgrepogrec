@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:appgrec/src/widgets/custom_dropdownbottom.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -24,9 +23,6 @@ class _StartGiveawayScreenState extends State<StartGiveawayScreen> {
 
   bool isLoading = true;
   final TextEditingController _searchController = TextEditingController();
-  String selectedStatus = 'Todos';
-
-  final List<String> statusOptions = ['Todos', 'disponible', 'pendiente', 'cancelado', 'realizado'];
 
   @override
   void initState() {
@@ -44,7 +40,7 @@ class _StartGiveawayScreenState extends State<StartGiveawayScreen> {
     }
 
     try {
-      final response = await http.get(Uri.parse('$baseUrl/api/giveaways/all'));
+      final response = await http.get(Uri.parse('$baseUrl/api/participationPrize/available-to-draw'));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (mounted && data['data'] is List) {
@@ -74,22 +70,10 @@ class _StartGiveawayScreenState extends State<StartGiveawayScreen> {
       return name.contains(query.toLowerCase());
     }).toList();
 
-    if (selectedStatus != 'Todos') {
-      results = results.where((g) => g['status'] == selectedStatus).toList();
-    }
-
     setState(() {
       filteredGiveaways = results;
       currentPage = 1;
     });
-  }
-
-  void _onStatusChanged(String? value) {
-    if (value == null) return;
-    setState(() {
-      selectedStatus = value;
-    });
-    _filterGiveaways(_searchController.text);
   }
 
   @override
@@ -120,37 +104,17 @@ class _StartGiveawayScreenState extends State<StartGiveawayScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Fila con Buscador y Dropdown
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Buscador
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.58, // Reducimos el tamaño
-                    child: CustomTextFormField(
-                      labelText: 'Buscar sorteo',
-                      icon: Icons.search,
-                      controller: _searchController,
-                      onChanged: _filterGiveaways,
-                    ),
-                  ),
-                  const SizedBox(width: 5), // Espacio entre los widgets
-                  
-                  // Dropdown
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.34, // Reducimos el tamaño
-                    child: CustomDropdownButton<String>(
-                      labelText: 'Estado',
-                      icon: Icons.filter_list,
-                      items: statusOptions,
-                      selectedValue: selectedStatus,
-                      onChanged: _onStatusChanged,
-                    ),
-                  ),
-                ],
+              // Fila con solo Buscador
+              SizedBox(
+                width: MediaQuery.of(context).size.width * 0.9, // Usamos el 90% de la pantalla
+                child: CustomTextFormField(
+                  labelText: 'Buscar sorteo',
+                  icon: Icons.search,
+                  controller: _searchController,
+                  onChanged: _filterGiveaways,
+                ),
               ),
-              const SizedBox(height: 20),
-
+              const SizedBox(height: 10), 
               // Lista
               isLoading
                   ? const Center(
@@ -171,10 +135,10 @@ class _StartGiveawayScreenState extends State<StartGiveawayScreen> {
                             itemCount: visibleGiveaways.length,
                             itemBuilder: (context, index) {
                               final giveaway = visibleGiveaways[index];
-                              final date = giveaway['startDate'] ?? ''; 
-                              final name = giveaway['name'] ?? 'Sin nombre';
+                              final date = giveaway['draw_date_giveaway'] ?? ''; 
+                              final name = giveaway['name_giveaway'] ?? 'Sin nombre';
                               final participations = giveaway['participations']?.toString() ?? '0'; 
-                              final status = giveaway['status'] ?? '';
+                              final prizes = giveaway['prizes'] ?? [];  // Aquí obtenemos los premios
 
                               return Card(
                                 margin: const EdgeInsets.symmetric(vertical: 10),
@@ -200,7 +164,7 @@ class _StartGiveawayScreenState extends State<StartGiveawayScreen> {
                                       children: [
                                         Text('Fecha Sorteo: $date'),
                                         Text('Participaciones: $participations'),
-                                        Text('Estado: $status'),
+                                        Text('Premios: ${prizes.join(', ')}'),  // Mostrar los nombres de los premios
                                       ],
                                     ),
                                   ),
@@ -229,14 +193,6 @@ class _StartGiveawayScreenState extends State<StartGiveawayScreen> {
                                         ),
                                       ),
                                     ),
-                                  ),
-                                  leading: CircleAvatar(
-                                    backgroundColor: status == 'activo'
-                                        ? Colors.green
-                                        : status == 'pendiente'
-                                            ? Colors.yellow
-                                            : Colors.grey,
-                                    radius: 8,
                                   ),
                                 ),
                               );

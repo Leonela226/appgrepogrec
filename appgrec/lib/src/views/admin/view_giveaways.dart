@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:appgrec/src/views/admin/giveaway_form_bottom_sheet.dart';
 import 'package:appgrec/src/views/admin/view_assign_prize.dart';
 import 'package:appgrec/src/widgets/custom_buttons_sec.dart';
+import 'package:appgrec/src/widgets/custom_dropdownbottom.dart';
 import 'package:appgrec/src/widgets/custom_text_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -25,22 +26,23 @@ class ViewGiveawaysScreenState extends State<ViewGiveawaysScreen> {
   bool isLoading = true;
   final TextEditingController _searchController = TextEditingController();
 
+   late String baseUrl;  // Variable para almacenar la URL
+  String selectedStatus = 'Todos'; 
+  final List<String> statusOptions = ['Todos', 'activo', 'pendiente', 'cancelado', 'realizado'];
+
   @override
   void initState() {
     super.initState();
-    _loadGiveaways();
+    baseUrl = dotenv.env['FRONTEND_URL'] ?? '';  // Cargamos baseUrl UNA sola vez
+    if (baseUrl.isEmpty) {
+      CustomSnackbar.showError(context, 'Error: FRONTEND_URL no está definida.');
+      return; // Detener la ejecución si la URL no está definida
+    }
+    _loadGiveaways();  // Llamamos a la carga de sorteos
   }
 
   // Carga los sorteos desde el servidor
   Future<void> _loadGiveaways() async {
-    final String? baseUrl = dotenv.env['FRONTEND_URL'];
-    if (baseUrl == null || baseUrl.isEmpty) {
-      if (mounted) {
-        CustomSnackbar.showError(context, 'Error: FRONTEND_URL no está definida.');
-      }
-      return;
-    }
-
     try {
       final response = await http.get(Uri.parse('$baseUrl/api/giveaways/all'));
       if (response.statusCode == 200) {
@@ -59,6 +61,7 @@ class ViewGiveawaysScreenState extends State<ViewGiveawaysScreen> {
                   'draw_date': giveaway['draw_date_giveaway'] ?? 'No disponible',
                   'status': giveaway['status_giveaway'] ?? 'No disponible',
                   'code_giveaway': giveaway['code_giveaway'] ?? 'No disponible',
+                  'branchId': giveaway['id_branch'] ?? 'No disponible',
                 };
               }).toList();
               filteredGiveaways = List.from(giveaways);
@@ -84,20 +87,35 @@ class ViewGiveawaysScreenState extends State<ViewGiveawaysScreen> {
     }
   }
 
-  // Filtra los sorteos por nombre
-  void _filterGiveaways(String query) {
-    setState(() {
-      if (query.isEmpty) {
-        filteredGiveaways = List.from(giveaways);
-      } else {
-        filteredGiveaways = giveaways
-            .where((giveaway) =>
-                giveaway['name'].toLowerCase().contains(query.toLowerCase()))
-            .toList();
-      }
-      currentPage = 1;
-    });
-  }
+void _filterGiveaways(String query) {
+  setState(() {
+    if (query.isEmpty) {
+      filteredGiveaways = List.from(giveaways);
+    } else {
+      filteredGiveaways = giveaways
+          .where((giveaway) =>
+              giveaway['name'].toLowerCase().contains(query.toLowerCase()))
+          .toList();
+    }
+
+    // Filtrado por estado
+    if (selectedStatus != 'Todos') {
+      filteredGiveaways = filteredGiveaways
+          .where((g) => g['status'] == selectedStatus)
+          .toList();
+    }
+    currentPage = 1;
+  });
+}
+
+void _onStatusChanged(String? value) {
+  if (value == null) return;
+  setState(() {
+    selectedStatus = value;
+  });
+  _filterGiveaways(_searchController.text);  // Refiltrar los sorteos según el estado seleccionado
+}
+
 
   // Método para mostrar el modal y actualizar la lista al crear un sorteo
   void _showCreateGiveawayModal() async {
@@ -121,6 +139,7 @@ class ViewGiveawaysScreenState extends State<ViewGiveawaysScreen> {
       return Colors.grey; // Si el estado no es "activo" ni "pendiente"
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -156,6 +175,18 @@ class ViewGiveawaysScreenState extends State<ViewGiveawaysScreen> {
                 onChanged: _filterGiveaways,
               ),
               const SizedBox(height: 10),
+              // Dropdown debajo del buscador
+              SizedBox(
+                width: MediaQuery.of(context).size.width * 0.9, // Usamos el 90% de la pantalla
+                child: CustomDropdownButton<String>(
+                  labelText: 'Estado',
+                  icon: Icons.filter_list,
+                  items: statusOptions,
+                  selectedValue: selectedStatus,
+                  onChanged: _onStatusChanged,
+                ),
+              ),
+              const SizedBox(height: 10),
               isLoading
                   ? const Center(child: CircularProgressIndicator(
                     valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF0000)), // Usando el color rojo
@@ -181,7 +212,7 @@ class ViewGiveawaysScreenState extends State<ViewGiveawaysScreen> {
                             itemBuilder: (context, index) {
                               final giveaway = visibleGiveaways[index];
                               return Card(
-                                margin: const EdgeInsets.symmetric(vertical: 10),
+                                margin: const EdgeInsets.symmetric(vertical: 8),
                                 child: ListTile(
                                   contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4), // Agregar padding horizontal
                                   title: Text(
@@ -208,6 +239,7 @@ class ViewGiveawaysScreenState extends State<ViewGiveawaysScreen> {
                                         Text('Fecha del sorteo: ${giveaway['draw_date']}'),
                                         Text('Estado: ${giveaway['status']}'),
                                         Text('Código: ${giveaway['code_giveaway']}'),
+                                        Text('Disponible para: ${giveaway['name_branch']}')
                                       ],
                                     ),
                                   ),
@@ -274,7 +306,7 @@ class ViewGiveawaysScreenState extends State<ViewGiveawaysScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
               CustomBottonSec(
                 text: 'Agregar',
                 onPressed: _showCreateGiveawayModal, // Abre el modal para crear un sorteo
