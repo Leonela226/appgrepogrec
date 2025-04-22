@@ -58,10 +58,15 @@ class LoginPageState extends State<LoginPage> {
         if (role == null) {
           CustomSnackbar.showError(context, "No se pudo obtener el rol del usuario.");
         } else {
+           // Verificar si la cuenta está inactiva
+            if (authProvider.userStatus == 'inactivo') {
+               CustomSnackbar.showError(context, "Tu cuenta ha sido desactivada.");
+               return; // Salir del flujo de navegación y no permitir el acceso
+            }
           // Redirigimos a la pantalla correspondiente según el rol
-          if (role == '1' || role =='2') { // Administrador o moderador
+          if (role == '1') { // Administrador 
             Navigator.pushReplacementNamed(context, '/admin_dashboard_client');  
-          } else if (role == '3') { // Cliente
+          } else if (role == '2') { // Cliente
             Navigator.pushReplacementNamed(context, '/client_home');  // /client_home //view_prizes
           } else {
             CustomSnackbar.showError(context, "Rol desconocido.");

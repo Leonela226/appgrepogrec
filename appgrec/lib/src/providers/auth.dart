@@ -9,6 +9,7 @@ class AuthProvider with ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   User? _user;
   String? _userRole;
+  String? userStatus; // Añadido para gestionar el estado del usuario
 
   AuthProvider() {
     _auth.authStateChanges().listen(_onAuthStateChanged);
@@ -31,6 +32,7 @@ class AuthProvider with ChangeNotifier {
     String name,
     String phone,
     String birthDate,
+    int? roleId,  // Parámetro opcional para el rol
   ) async {
     try {
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
@@ -49,6 +51,7 @@ class AuthProvider with ChangeNotifier {
           "name_user": name,
           "phone_number": phone,
           "date_birth": birthDate,
+          'id_role': roleId ?? 2,  // Enviar el ID de rol si se proporciona, por defecto 2 (Cliente)
         }),
       );
 
@@ -108,29 +111,42 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  // ✅ Obtener rol
-  Future<void> fetchUserRole() async {
-    if (_user != null) {
-      try {
-        var response = await http.get(
-          Uri.parse('${dotenv.env['FRONTEND_URL']}/api/user/user_role?firebase_uid=${_user!.uid}'),
-          headers: {"Content-Type": "application/json"},
-        );
+// ✅ Obtener rol y estado del usuario
+Future<void> fetchUserRole({bool fetchRoleAndStatus = false}) async {
+  if (_user != null) {
+    try {
+      // Se determina qué ruta utilizar según la necesidad
+      String endpoint = fetchRoleAndStatus
+          ? '${dotenv.env['FRONTEND_URL']}/api/user/user_role_status?firebase_uid=${_user!.uid}'
+          : '${dotenv.env['FRONTEND_URL']}/api/user/user_role?firebase_uid=${_user!.uid}';
 
-        if (response.statusCode == 200) {
-          var data = jsonDecode(response.body);
-          _userRole = data['id_rol'].toString();
-        } else {
-          _userRole = null;
-          debugPrint("Error obteniendo rol: ${response.body}");
+      var response = await http.get(
+        Uri.parse(endpoint),
+        headers: {"Content-Type": "application/json"},
+      );
+
+      if (response.statusCode == 200) {
+        var data = jsonDecode(response.body);
+        _userRole = data['id_rol'].toString();
+
+        // Si estamos obteniendo el rol y estado, también se almacena el estado
+        if (fetchRoleAndStatus) {
+          userStatus = data['status'].toString();
         }
-      } catch (e) {
+      } else {
         _userRole = null;
-        debugPrint("Error en la conexión: $e");
+        userStatus = null;
+        debugPrint("Error obteniendo rol y estado: ${response.body}");
       }
-      notifyListeners();
+    } catch (e) {
+      _userRole = null;
+      userStatus = null;
+      debugPrint("Error en la conexión: $e");
     }
+    notifyListeners();
   }
+}
+
 
   // ✅ Logout
   Future<void> logout() async {

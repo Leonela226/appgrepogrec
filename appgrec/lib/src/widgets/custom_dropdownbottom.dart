@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class CustomDropdownButton<T> extends StatelessWidget {
   final String? labelText;
-  final IconData? icon;  // Cambiar a tipo nullable para hacerlo opcional
+  final IconData? icon; // Icono opcional
   final List<T> items;
   final T? selectedValue;
   final Function(T?)? onChanged;
@@ -11,6 +11,9 @@ class CustomDropdownButton<T> extends StatelessWidget {
   final TextStyle? labelStyle;
   final TextStyle? itemTextStyle;
   final Widget? suffixIcon;
+  final double? width;
+  final double? height;
+
 
   const CustomDropdownButton({
     super.key,
@@ -24,6 +27,9 @@ class CustomDropdownButton<T> extends StatelessWidget {
     this.labelStyle,
     this.itemTextStyle,
     this.suffixIcon,
+    this.width,
+    this.height,
+
   });
 
   @override
@@ -31,9 +37,9 @@ class CustomDropdownButton<T> extends StatelessWidget {
     double screenWidth = MediaQuery.of(context).size.width;
 
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05), // 5% del ancho de la pantalla
+      padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
       child: SizedBox(
-        width: screenWidth * 0.9, // Ancho del 90% de la pantalla
+        width: width ?? screenWidth * 0.9,
         child: DropdownButtonFormField<T>(
           value: selectedValue,
           onChanged: onChanged,
@@ -43,14 +49,16 @@ class CustomDropdownButton<T> extends StatelessWidget {
                 TextStyle(
                   color: Colors.black,
                   fontFamily: 'TitilliumWeb',
-                  fontWeight: FontWeight.w600, // SemiBold
-                  fontSize: screenWidth * 0.04, // Fuente adaptativa
+                  fontWeight: FontWeight.w600,
+                  fontSize: screenWidth * 0.04,
                 ),
-            prefixIcon: Icon(
-              icon,
-              color: Colors.black,
-              size: screenWidth * 0.06, // Tamaño del ícono adaptativo
-            ),
+            prefixIcon: icon != null
+                ? Icon(
+                    icon,
+                    color: Colors.black,
+                    size: screenWidth * 0.05,
+                  )
+                : null,
             suffixIcon: suffixIcon,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(borderRadius),
@@ -67,7 +75,7 @@ class CustomDropdownButton<T> extends StatelessWidget {
             errorStyle: TextStyle(
               color: Colors.red,
               fontFamily: 'TitilliumWeb',
-              fontWeight: FontWeight.w400, // Ligero
+              fontWeight: FontWeight.w400,
             ),
           ),
           style: itemTextStyle ??
@@ -75,13 +83,21 @@ class CustomDropdownButton<T> extends StatelessWidget {
                 color: Colors.black,
                 fontFamily: 'TitilliumWeb',
                 fontWeight: FontWeight.normal,
-                fontSize: screenWidth * 0.045,
+                fontSize: screenWidth * 0.035,
               ),
           items: items
-              .map((item) => DropdownMenuItem<T>(
-                    value: item,
-                    child: Text(item.toString()),
-                  ))
+              .map((item) {
+                String displayText = '';
+                if (item is Map<String, dynamic>) {
+                  displayText = item['name_prize'] ?? 'Sin nombre';
+                } else {
+                  displayText = item.toString();
+                }
+                return DropdownMenuItem<T>(
+                  value: item,
+                  child: Text(displayText),
+                );
+              })
               .toList(),
         ),
       ),

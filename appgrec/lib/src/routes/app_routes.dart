@@ -17,7 +17,8 @@ import 'package:appgrec/src/routes/routes.dart';
 Map<String, Widget Function(BuildContext)> appRoutes = {
   Routes.welcome: (_) => const WelcomeScreen(),
   Routes.login: (_) => const LoginPage(),
-  Routes.register: (_) => const RegisterPage(),
+  Routes.register: (context) => RegisterPage(
+      isAdmin: ModalRoute.of(context)?.settings.arguments as bool? ?? false),
   Routes.forgotPassword: (_) => const ForgotPasswordPage(),
   Routes.profileUsers: (_) => const ProfileUsers(),
   Routes.clientHome: (_) => const ClientHomeScreen(),

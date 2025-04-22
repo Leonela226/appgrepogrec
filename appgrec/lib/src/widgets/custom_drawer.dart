@@ -82,7 +82,7 @@ class CustomDrawer extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            onTap: () => _navigateIfNeeded(context, '/'),
+            onTap: () => _navigateIfNeeded(context, '/user_management'),
           ),          
           ListTile(
             leading: Icon(Icons.card_giftcard, color: Color(0xFF434244)),
@@ -115,7 +115,7 @@ class CustomDrawer extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            onTap: () => _navigateIfNeeded(context, '/'),
+            onTap: () => _navigateIfNeeded(context, '/start_giveaway'),
           ),  
           ListTile(
             leading: Icon(Icons.emoji_events, color: Color(0xFF434244)),

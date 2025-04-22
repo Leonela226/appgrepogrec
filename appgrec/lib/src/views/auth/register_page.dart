@@ -1,14 +1,17 @@
-import 'package:appgrec/src/validators/form_validators.dart';
+import 'package:appgrec/src/utils/validators/form_field_validators.dart';
 import 'package:appgrec/src/widgets/custom_appbar.dart';
 import 'package:appgrec/src/widgets/custom_buttons_prim.dart';
+import 'package:appgrec/src/widgets/custom_dropdownbottom.dart';
 import 'package:appgrec/src/widgets/custom_text_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:appgrec/src/providers/auth.dart';
-import 'package:appgrec/src/widgets/custom_snackbar.dart'; // Importa el widget de snackbar personalizado
+import 'package:appgrec/src/widgets/custom_snackbar.dart';
 
 class RegisterPage extends StatefulWidget {
-  const RegisterPage({super.key});
+  final bool isAdmin;
+
+  const RegisterPage({super.key, required this.isAdmin});
 
   @override
   RegisterPageState createState() => RegisterPageState();
@@ -22,7 +25,6 @@ class RegisterPageState extends State<RegisterPage> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _dateBirthController = TextEditingController();
 
-  // Crear FocusNode para cada campo de texto
   final _nameFocusNode = FocusNode();
   final _emailFocusNode = FocusNode();
   final _passwordFocusNode = FocusNode();
@@ -31,6 +33,13 @@ class RegisterPageState extends State<RegisterPage> {
 
   bool _isPasswordObscure = true;
   bool _isLoading = false;
+
+  // Rol seleccionado y lista de roles
+  // Cambiar el tipo de _selectedRoleId a int?
+  int? _selectedRoleId;  // Guardar el ID del rol como un entero
+  final Map<String, int> roles = {
+    'Administrador': 1,  // ID de rol de Administrador
+  };
 
   @override
   void dispose() {
@@ -83,6 +92,7 @@ class RegisterPageState extends State<RegisterPage> {
         name,
         phone,
         birthDate,
+         _selectedRoleId,
       );
 
       setState(() {
@@ -91,9 +101,9 @@ class RegisterPageState extends State<RegisterPage> {
 
       if (mounted) {
         if (result == null) {
-          CustomSnackbar.showSuccess(context, 'Usuario registrado exitosamente'); // Correcto
+          CustomSnackbar.showSuccess(context, 'Usuario registrado exitosamente');
         } else {
-          CustomSnackbar.showError(context, 'Error: $result'); // Uso del SnackBar personalizado
+          CustomSnackbar.showError(context, 'Error: $result');
         }
       }
     }
@@ -111,13 +121,13 @@ class RegisterPageState extends State<RegisterPage> {
               key: _formKey,
               child: ListView(
                 children: [
-                  const SizedBox(height: 40), // Agrega espacio antes del título
-                  Text(
+                  const SizedBox(height: 40),
+                  const Text(
                     'Registro',
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontFamily: 'TitilliumWeb', // Cambiado para usar TitilliumWeb
-                      fontWeight: FontWeight.w600, // SemiBold
+                    style: TextStyle(
+                      fontFamily: 'TitilliumWeb',
+                      fontWeight: FontWeight.w600,
                       fontSize: 24,
                       color: Colors.black,
                     ),
@@ -158,7 +168,9 @@ class RegisterPageState extends State<RegisterPage> {
                     },
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _isPasswordObscure ? Icons.visibility : Icons.visibility_off,
+                        _isPasswordObscure
+                            ? Icons.visibility
+                            : Icons.visibility_off,
                         color: Colors.black,
                       ),
                       onPressed: () {
@@ -197,6 +209,20 @@ class RegisterPageState extends State<RegisterPage> {
                       ),
                     ),
                   ),
+                  if (widget.isAdmin) ...[
+                    const SizedBox(height: 16),
+                    CustomDropdownButton<String>(
+                      labelText: 'Rol',
+                      icon: Icons.admin_panel_settings,
+                      selectedValue: roles.keys.firstWhere((key) => roles[key] == _selectedRoleId, orElse: () => 'Administrador'),
+                      items: roles.keys.toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedRoleId = roles[value];  // Asignar el ID del rol
+                        });
+                      },
+                    ),
+                  ],
                   const SizedBox(height: 32),
                   CustomButton(
                     text: 'Registrarse',
@@ -208,10 +234,10 @@ class RegisterPageState extends State<RegisterPage> {
           ),
           if (_isLoading)
             Container(
-              color: Colors.black.withAlpha((0.5 * 255).round()),
-              child: Center(
+              color: Colors.black.withOpacity(0.5),
+              child: const Center(
                 child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(const Color(0xFFFF0000)),
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF0000)),
                 ),
               ),
             ),
