@@ -1,3 +1,4 @@
+import 'package:appgrec/src/routes/routes.dart';
 import 'package:appgrec/src/widgets/custom_appbar.dart';
 import 'package:appgrec/src/widgets/custom_drawer.dart';
 import 'package:appgrec/src/widgets/custom_dropdownbottom.dart';
@@ -108,22 +109,22 @@ class UserManagementScreenState extends State<UserManagementScreen> {
     }
   }
 
-  Future<void> fetchUsers() async {
-    try {
-      final response = await http.get(Uri.parse('$baseUrl/api/auth/all'));
-      if (response.statusCode == 200) {
-        final List jsonData = jsonDecode(response.body);
-        allUsers = jsonData.map((e) => UserModel.fromJson(e)).toList();
-        filteredUsers = allUsers;
-      } else {
-        print('Error al obtener usuarios: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('Error: $e');
+Future<void> fetchUsers() async {
+  try {
+    final response = await http.get(Uri.parse('$baseUrl/api/auth/all'));
+    if (response.statusCode == 200) {
+      final List jsonData = jsonDecode(response.body);
+      allUsers = jsonData.map((e) => UserModel.fromJson(e)).toList();
+      filteredUsers = allUsers;
+    } else {
+      CustomSnackbar.showError(context, 'Error al obtener usuarios: ${response.statusCode}');
     }
-
-    setState(() => isLoading = false);
+  } catch (e) {
+    CustomSnackbar.showError(context, 'Error al obtener usuarios: $e');
   }
+
+  setState(() => isLoading = false);
+}
 
   void _filterUsers(String query) {
     setState(() {
@@ -138,24 +139,26 @@ class UserManagementScreenState extends State<UserManagementScreen> {
     });
   }
 
+
   Future<void> _updateUserStatus(int userId, String newStatus) async {
-    final url = Uri.parse('$baseUrl/api/users/$userId/status');
+    final url = Uri.parse('$baseUrl/api/auth/status-user/$userId/status');
     try {
       final response = await http.put(
         url,
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'status': newStatus}),
+        body: jsonEncode({'status': newStatus.toLowerCase()}),
       );
       if (response.statusCode == 200) {
         setState(() {
           final user = allUsers.firstWhere((u) => u.id == userId);
           user.status = newStatus;
+           _filterUsers(searchController.text); // <-
         });
       } else {
-        print('Error al actualizar estado: ${response.statusCode}');
+        CustomSnackbar.showError(context, 'Error al actualizar estado: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error: $e');
+      CustomSnackbar.showError(context, 'Error al actualizar estado: $e');
     }
   }
 
@@ -284,7 +287,12 @@ class UserManagementScreenState extends State<UserManagementScreen> {
                                       Text('Teléfono: ${user.phone}'),
                                       Text('Nacimiento: ${user.birthDate}'),
                                       Text('Rol: ${user.role}'),
-                                      Text('Estado: ${user.status}'),
+                                      Text(
+                                        'Estado: ${user.status}',
+                                         style: TextStyle(
+                                          color: user.status == 'Activo' ? const Color.fromARGB(255, 35, 185, 40) : Colors.red, // Cambiar color según estado
+                                         ),
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -347,7 +355,12 @@ class UserManagementScreenState extends State<UserManagementScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Acción para agregar nuevo usuario
+         // Navegar a la pantalla de registro con isAdmin = true
+         Navigator.pushNamed(
+          context,
+          Routes.register,
+          arguments: true,  // Pasando el parámetro isAdmin
+         );
         },
         backgroundColor: const Color(0xFF434244),
         child: const Icon(Icons.person_add, color: Colors.white),
