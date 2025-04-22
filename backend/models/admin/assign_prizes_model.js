@@ -41,4 +41,5 @@ const GiveawayPrize = sequelize.define("GiveawayPrize", {
 GiveawayPrize.belongsTo(Giveaway, { foreignKey: 'id_giveaway' }); // Un GiveawayPrize pertenece a un Giveaway
 GiveawayPrize.belongsTo(Prize, { foreignKey: 'id_prize' }); // Un GiveawayPrize pertenece a un Prize
 
+
 module.exports = GiveawayPrize;

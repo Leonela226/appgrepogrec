@@ -1,5 +1,6 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../../config/database");
+const Branch = require("../admin/branches_model");
 
 const Giveaway = sequelize.define("Giveaway", {
     id_giveaway: {
@@ -17,7 +18,7 @@ const Giveaway = sequelize.define("Giveaway", {
         allowNull: false,
     },
     image_url: {
-        type: DataTypes.STRING(500),
+        type: DataTypes.STRING(100),
         allowNull: true,
     },
     description_giveaway: {
@@ -35,6 +36,10 @@ const Giveaway = sequelize.define("Giveaway", {
     draw_date_giveaway: {
         type: DataTypes.DATEONLY, 
         allowNull: false,
+    },
+    id_branch: {
+        type: DataTypes.INTEGER,
+        allowNull: true // o false si  es obligatorio
     },
     status_giveaway: {
         type: DataTypes.ENUM('pendiente', 'activo', 'finalizado', 'cancelado'),
@@ -59,5 +64,21 @@ const Giveaway = sequelize.define("Giveaway", {
     createdAt: "created_at",
     updatedAt: "updated_at",
 });
+
+// Un sorteo pertenece a una sucursal
+Giveaway.belongsTo(Branch, {
+    foreignKey: "id_branch",
+    as: "branch" // Alias que se usará para incluir la sucursal
+});
+
+// Una sucursal puede tener muchos sorteos
+Branch.hasMany(Giveaway, {
+    foreignKey: "id_branch",
+    as: "giveaways"
+});
+
+// En Giveaway model
+Giveaway.hasMany(GiveawayPrize, { foreignKey: 'id_giveaway' });
+
 
 module.exports = Giveaway;

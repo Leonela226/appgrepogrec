@@ -26,7 +26,7 @@ const User = sequelize.define("User", {
   },
   profile_photo_url: {
     type: DataTypes.STRING,
-    allowNull: null,
+    allowNull: true,
   },
   phone_number: {
     type: DataTypes.STRING,
@@ -44,7 +44,7 @@ const User = sequelize.define("User", {
     type: DataTypes.INTEGER,
     allowNull: false,
     validate: {
-      isIn: [[1, 2, 3]], // Validación para roles permitidos
+      isIn: [[1, 2]], // Validación para roles permitidos
     },
   },
 }, {
