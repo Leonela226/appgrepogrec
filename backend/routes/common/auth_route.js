@@ -8,4 +8,12 @@ router.post('/register', userController.registerUser);
 
 router.get('/by-uid/:firebase_uid', userController.getUserIdByFirebaseUid);
 
+router.get('/all',userController.getAllUsers)
+
+router.put('/status-user/:id/status', userController.updateUserStatus);
+
+router.get('/user_role_status', userController.getUserRoleAndStatus);
+
+
+
 module.exports = router;
