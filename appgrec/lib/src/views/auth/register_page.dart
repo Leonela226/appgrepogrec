@@ -234,7 +234,7 @@ class RegisterPageState extends State<RegisterPage> {
           ),
           if (_isLoading)
             Container(
-              color: Colors.black.withOpacity(0.5),
+              color: Colors.black.withValues(alpha: 128), // Cambiar a withValues
               child: const Center(
                 child: CircularProgressIndicator(
                   valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF0000)),

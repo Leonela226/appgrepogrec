@@ -13,6 +13,8 @@ class CustomBottomNavBar extends StatefulWidget {
 class CustomBottomNavBarState extends State<CustomBottomNavBar> {
   int selectedIndex = 0;
 
+
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -20,8 +22,8 @@ class CustomBottomNavBarState extends State<CustomBottomNavBar> {
     int newIndex = 0;
     if (currentRoute == Routes.clientHome) {
       newIndex = 0;
-    } else if (currentRoute == Routes.profileUsers) {
-      newIndex = 1;
+   // } else if (currentRoute == Routes.userProfileContent) {
+      //newIndex = 1;
     } 
     // else if (currentRoute == Routes.scanner) {
     //   newIndex = 2;
@@ -46,9 +48,9 @@ class CustomBottomNavBarState extends State<CustomBottomNavBar> {
       case 0:
         newRoute = Routes.clientHome;
         break;
-      case 1:
-        newRoute = Routes.profileUsers;
-        break;
+     // case 1:
+        //newRoute =  Routes.userProfileContent;
+        //break;
       case 2:
          newRoute = Routes.clientQRscan;
       //   break;

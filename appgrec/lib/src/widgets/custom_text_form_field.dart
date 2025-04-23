@@ -15,6 +15,7 @@ class CustomTextFormField extends StatelessWidget {
   final Function(String)? onChanged; // Parámetro opcional
   final int? minLines; // Agregado
   final int? maxLines; // Agregado 
+  final bool enabled; // Nuevo
 
   const CustomTextFormField({
     super.key,
@@ -31,6 +32,7 @@ class CustomTextFormField extends StatelessWidget {
     this.onChanged, // No es obligatorio
     this.minLines = 1, // Valor predeterminado
     this.maxLines = 1, // Valor predeterminado
+    this.enabled = true, // Por defecto está habilitado
   });
 
   @override
@@ -46,6 +48,7 @@ class CustomTextFormField extends StatelessWidget {
           onChanged: onChanged, // Se usará solo si se pasa
           keyboardType: keyboardType,
           obscureText: obscureText,
+          enabled: enabled, // <- Aquí lo usas
           decoration: InputDecoration(
             labelText: labelText,
             labelStyle: TextStyle(

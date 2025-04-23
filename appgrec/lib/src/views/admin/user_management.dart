@@ -1,3 +1,4 @@
+import 'package:appgrec/src/models/user_model.dart';
 import 'package:appgrec/src/routes/routes.dart';
 import 'package:appgrec/src/widgets/custom_appbar.dart';
 import 'package:appgrec/src/widgets/custom_drawer.dart';
@@ -9,45 +10,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:appgrec/src/widgets/custom_text_form_field.dart';
-
-extension StringExtension on String {
-  String capitalize() {
-    if (isEmpty) return this;
-    return this[0].toUpperCase() + substring(1).toLowerCase();
-  }
-}
-
-class UserModel {
-  final int id;
-  final String name;
-  final String email;
-  final String phone;
-  final String birthDate;
-  final String role;
-  String status;
-
-  UserModel({
-    required this.id,
-    required this.name,
-    required this.email,
-    required this.phone,
-    required this.birthDate,
-    required this.role,
-    required this.status,
-  });
-
-  factory UserModel.fromJson(Map<String, dynamic> json) {
-    return UserModel(
-      id: json['id'],
-      name: json['name'],
-      email: json['email'],
-      phone: json['phone'],
-      birthDate: json['birthDate'],
-      role: json['role'],
-      status: (json['status'] as String).capitalize(),
-    );
-  }
-}
 
 class UserManagementScreen extends StatefulWidget {
   const UserManagementScreen({super.key});

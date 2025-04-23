@@ -30,45 +30,56 @@ class LoginPageState extends State<LoginPage> {
       setState(() {
         _isLoading = true;
       });
-      
+
+      // Captura el contexto antes de la operación asincrónica
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
       String? error = await authProvider.loginWithEmail(
         _emailController.text.trim(),
         _passwordController.text.trim(),
       );
 
-      if (!mounted) return;  // Verificar si el widget sigue montado
+      // Verificamos si el widget sigue montado antes de continuar
+      if (!mounted) return;
 
       setState(() {
         _isLoading = false;
       });
 
       if (error != null) {
-        // Usando el widget personalizado de Snackbar
+        // Usamos el widget personalizado de Snackbar para mostrar el error
+        if (!mounted) return;  // Verificar si el widget sigue montado antes de usar el contexto
         CustomSnackbar.showError(context, error);
       } else {
         // Ahora obtenemos el rol del usuario
         await authProvider.fetchUserRole();
 
-        if (!mounted) return;  // Verificar si el widget sigue montado
+        // Verificamos si el widget sigue montado antes de continuar
+        if (!mounted) return;
 
         // Comprobamos el rol del usuario
         String? role = authProvider.userRole;
 
         if (role == null) {
+          if (!mounted) return;
           CustomSnackbar.showError(context, "No se pudo obtener el rol del usuario.");
         } else {
-           // Verificar si la cuenta está inactiva
-            if (authProvider.userStatus == 'inactivo') {
-               CustomSnackbar.showError(context, "Tu cuenta ha sido desactivada.");
-               return; // Salir del flujo de navegación y no permitir el acceso
-            }
+          // Verificar si la cuenta está inactiva
+          if (authProvider.userStatus == 'inactivo') {
+            if (!mounted) return;
+            CustomSnackbar.showError(context, "Tu cuenta ha sido desactivada.");
+            return; // Salir del flujo de navegación y no permitir el acceso
+          }
+
           // Redirigimos a la pantalla correspondiente según el rol
           if (role == '1') { // Administrador 
+            if (!mounted) return;
             Navigator.pushReplacementNamed(context, '/admin_dashboard_client');  
           } else if (role == '2') { // Cliente
+            if (!mounted) return;
             Navigator.pushReplacementNamed(context, '/client_home');  // /client_home //view_prizes
           } else {
+            if (!mounted) return;
             CustomSnackbar.showError(context, "Rol desconocido.");
           }
         }

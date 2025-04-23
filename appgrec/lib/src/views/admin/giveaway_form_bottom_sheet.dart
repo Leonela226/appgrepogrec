@@ -58,7 +58,7 @@ class GiveawayModalState extends State<GiveawayModal> {
     // Accede a la clave 'data' que contiene la lista de sucursales
     final List<dynamic> branchList = responseData['data'];  // Renombramos la variable a branchList
     
-      print('Branch Data: $branchList');
+      //print('Branch Data: $branchList');
 
       setState(() {
         _branches = List<Map<String, dynamic>>.from(branchList); // Asigna la lista de sucursales a _branches

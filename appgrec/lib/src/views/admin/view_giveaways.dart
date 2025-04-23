@@ -61,7 +61,7 @@ class ViewGiveawaysScreenState extends State<ViewGiveawaysScreen> {
                   'draw_date': giveaway['draw_date_giveaway'] ?? 'No disponible',
                   'status': giveaway['status_giveaway'] ?? 'No disponible',
                   'code_giveaway': giveaway['code_giveaway'] ?? 'No disponible',
-                  'branchId': giveaway['id_branch'] ?? 'No disponible',
+                  'branchId': giveaway['name_branch'] ?? 'No disponible',
                 };
               }).toList();
               filteredGiveaways = List.from(giveaways);

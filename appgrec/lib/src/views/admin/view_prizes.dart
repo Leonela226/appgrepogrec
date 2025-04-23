@@ -136,7 +136,7 @@ class ViewPrizesScreenState extends State<ViewPrizesScreen> {
                               padding: EdgeInsets.symmetric(vertical: 20),
                               child: Text(
                                 'Aún no hay premios creados',
-                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey),
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey, fontFamily: 'TitilliumWeb'),
                               ),
                             ),
                           )

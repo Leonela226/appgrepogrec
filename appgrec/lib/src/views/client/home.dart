@@ -79,7 +79,10 @@ class ClientHomeScreenState extends State<ClientHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CustomAppBar(), // Se usa el AppBar personalizado
+      appBar: const CustomAppBar(
+        automaticallyImplyLeading: false,  // Aquí puedes controlar cuando quitar la flecha
+      ),
+       // Se usa el AppBar personalizado
       body: Column(
         children: [
           const SizedBox(height: 20),

@@ -35,8 +35,8 @@ class CustomBottonSec extends StatelessWidget {
             child: ElevatedButton(
               onPressed: onPressed,
               style: ButtonStyle(
-                backgroundColor: WidgetStateProperty.resolveWith<Color>(
-                  (Set<WidgetState> states) {
+                backgroundColor: WidgetStateProperty.resolveWith<Color>(  // Cambiado a MaterialStateProperty
+                  (Set<WidgetState> states) {  // Cambiado WidgetState a MaterialState
                     if (states.contains(WidgetState.pressed)) {
                       return const Color(0xFF434244); // Color al presionar (#434244)
                     }
@@ -44,12 +44,12 @@ class CustomBottonSec extends StatelessWidget {
                   },
                 ),
                 foregroundColor: WidgetStateProperty.all<Color>(textColor), // Texto en blanco
-                shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                shape: WidgetStateProperty.all<RoundedRectangleBorder>( // Usar MaterialStateProperty
                   RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(borderRadius), // Bordes redondeados
                   ),
                 ),
-                padding: WidgetStateProperty.all<EdgeInsets>(
+                padding: WidgetStateProperty.all<EdgeInsets>( // Usar MaterialStateProperty
                   const EdgeInsets.symmetric(vertical: 8.0), // Ajuste de padding vertical
                 ),
               ),

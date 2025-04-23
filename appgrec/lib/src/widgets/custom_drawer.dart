@@ -5,7 +5,7 @@ class CustomDrawer extends StatelessWidget {
 
   void _navigateIfNeeded(BuildContext context, String route) {
     if (ModalRoute.of(context)?.settings.name != route) {
-      Navigator.pushReplacementNamed(context, route);
+      Navigator.pushNamed(context, route);
     }
   }
 
@@ -60,7 +60,7 @@ class CustomDrawer extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            onTap: () => _navigateIfNeeded(context, '/'),
+            onTap: () => _navigateIfNeeded(context, '/profile_users'),
           ),
           ListTile(
             leading: Icon(Icons.dashboard, color: Color(0xFF434244)),

@@ -1,4 +1,4 @@
-import 'package:appgrec/src/validators/form_validators.dart';
+import 'package:appgrec/src/utils/validators/form_field_validators.dart';
 import 'package:appgrec/src/widgets/custom_appbar.dart';
 import 'package:appgrec/src/widgets/custom_text_form_field.dart';
 import 'package:appgrec/src/widgets/custom_buttons_prim.dart';

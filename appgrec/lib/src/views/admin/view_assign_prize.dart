@@ -1,4 +1,5 @@
 import 'package:appgrec/src/utils/validators/assign_prize_validators.dart';
+import 'package:appgrec/src/views/admin/view_giveaways.dart';
 import 'package:appgrec/src/widgets/custom_buttons_sec.dart'; 
 import 'package:appgrec/src/widgets/custom_dropdownbottom.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -106,13 +107,6 @@ class AssignPrizeScreenState extends State<AssignPrizeScreen> {
           }
 
           final selectedPrizeId = selectedPrize?['id_prize'];
-          if (isPrizeAlreadyAssignedLocally(assignedPrizes, selectedPrizeId)) {
-            CustomSnackbar.showWarning(
-              context,
-              'Este premio ya ha sido asignado localmente, elija otro.'
-            );
-            return;
-          }
 
           final nextOrder = getNextAvailableOrder(assignedPrizes);
 
@@ -338,15 +332,35 @@ class AssignPrizeScreenState extends State<AssignPrizeScreen> {
             ),
 
             const SizedBox(height: 20),
-            SizedBox(
-              width: MediaQuery.of(context).size.width * 0.30,
-              child: CustomBottonSec(
-                text: 'Guardar',
-                onPressed: _onSave,
-                paddingHorizontal: 12.0,
-                paddingVertical: 6.0,
-              ),
-            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.30,
+                  child: CustomBottonSec(
+                    text: 'Guardar',
+                    onPressed: _onSave,
+                    paddingHorizontal: 12.0,
+                    paddingVertical: 6.0,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.30,
+                  child: CustomBottonSec(
+                    text: 'Volver',
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => const ViewGiveawaysScreen()),
+                      );
+                    },
+                    paddingHorizontal: 12.0,
+                    paddingVertical: 6.0,
+                  ),
+                ),
+              ],
+            ) 
           ],
         ),
       ),
