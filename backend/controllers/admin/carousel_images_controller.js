@@ -6,7 +6,7 @@ const Carousel = require("../../models/admin/carousel_images_model");
 // Configuración de almacenamiento para multer
 const storage = multer.diskStorage({
   destination: async (req, file, cb) => {
-    const dir = path.join(__dirname, '..', 'uploads', 'carousel_images');
+    const dir = path.join(__dirname, '..', '..' ,'uploads', 'carousel_images');
     try {
       await fs.promises.mkdir(dir, { recursive: true });  // Crear el directorio si no existe
       cb(null, dir);
@@ -67,8 +67,7 @@ exports.createCarouselImage = async (req, res) => {
       // Guardar la URL de la imagen en la base de datos
       const newCarouselImage = await Carousel.create({
         url_carousel_image,
-        title_carousel_image,
-        description_carousel_image
+
       });
 
       // Emitir evento a WebSocket para actualizar a los clientes en tiempo real

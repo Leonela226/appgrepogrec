@@ -37,9 +37,4 @@ const GiveawayPrize = sequelize.define("GiveawayPrize", {
   updatedAt: "updated_at",        // Mapea `updatedAt` a `updated_at`
 });
 
-// Definir las relaciones
-GiveawayPrize.belongsTo(Giveaway, { foreignKey: 'id_giveaway' }); // Un GiveawayPrize pertenece a un Giveaway
-GiveawayPrize.belongsTo(Prize, { foreignKey: 'id_prize' }); // Un GiveawayPrize pertenece a un Prize
-
-
 module.exports = GiveawayPrize;

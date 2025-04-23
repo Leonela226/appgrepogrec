@@ -1,6 +1,8 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../../config/database");
 const Branch = require("../admin/branches_model");
+const CodeQR = require("../client/scanner_qr_model");
+const GiveawayPrize = require("../admin/assign_prizes_model");
 
 const Giveaway = sequelize.define("Giveaway", {
     id_giveaway: {
@@ -65,6 +67,7 @@ const Giveaway = sequelize.define("Giveaway", {
     updatedAt: "updated_at",
 });
 
+/*
 // Un sorteo pertenece a una sucursal
 Giveaway.belongsTo(Branch, {
     foreignKey: "id_branch",
@@ -77,8 +80,12 @@ Branch.hasMany(Giveaway, {
     as: "giveaways"
 });
 
-// En Giveaway model
-Giveaway.hasMany(GiveawayPrize, { foreignKey: 'id_giveaway' });
-
+Giveaway.hasMany(CodeQR, {
+    foreignKey: 'code_giveaway',
+    as: 'codesQR' // Aquí defines el alias
+  });
+*/
 
 module.exports = Giveaway;
+
+

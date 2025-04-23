@@ -1,5 +1,8 @@
 require("dotenv").config(); // Cargar variables de entorno al inicio
 
+// Modelos y relaciones
+require('./models/associations')();
+
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
@@ -14,6 +17,9 @@ const giveawayRoute = require("./routes/admin/view_giveaway_route");
 const assignRoute = require("./routes/admin/assign_prizes_route");
 const scannerRoute = require("./routes/client/scanner_qr_route");
 const participationRoute = require("./routes/client/participation_route");
+const branchRoute = require("./routes/admin/branches_route");
+const participationPrizeRoute = require("./routes/admin/participation_prize_route");
+const profileAdminRoute = require("./routes/admin/profile_user_admin_route");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -45,11 +51,15 @@ app.use('/api/carousel', carouselRoute);
 app.use('/api/prizes',prizeRoute); 
 app.use('/api/giveaways',giveawayRoute); 
 app.use('/api/assign',assignRoute);
+app.use('/api/branch', branchRoute);
+app.use('/api/participationPrize', participationPrizeRoute);
+app.use('/api/profileAdmin', profileAdminRoute);
+
+
 
 //rutas cliente
 app.use('/api/scanner', scannerRoute);
 app.use('/api/participation', participationRoute);
-
 
 
 // WebSockets: escuchar conexiones

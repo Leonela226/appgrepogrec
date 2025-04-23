@@ -3,11 +3,13 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');  // Para generar cadenas alfanuméricas aleatorias
 const Giveaway = require("../../models/admin/view_giveaway_model");
+const Branch = require("../../models/admin/branches_model"); // Ajusta la ruta si es necesario
+
 
 // Configuración de almacenamiento para multer
 const storage = multer.diskStorage({
     destination: async (req, file, cb) => {
-        const dir = path.join(__dirname, '..', 'uploads', 'giveaway_images');
+        const dir = path.join(__dirname, '..', '..' ,'uploads', 'giveaway_images');
         try {
             await fs.promises.mkdir(dir, { recursive: true });  // Crear el directorio si no existe
             cb(null, dir);
@@ -38,13 +40,14 @@ const upload = multer({
     }
 });
 
+
 exports.createGiveaway = async (req, res) => {
     upload.single('giveaway_image')(req, res, async (err) => {
         if (err instanceof multer.MulterError) {
-            console.error("MulterError:", err);  // Log para errores de Multer
+            console.error("MulterError:", err);
             return res.status(400).json({ message: "Error al cargar la imagen del sorteo.", error: err.message });
         } else if (err) {
-            console.error("Error general en Multer:", err);  // Log para errores generales
+            console.error("Error general en Multer:", err);
             return res.status(500).json({ message: "Error interno del servidor.", error: err.message });
         }
 
@@ -53,12 +56,25 @@ exports.createGiveaway = async (req, res) => {
         }
 
         // Logs para depuración
-       // console.log("Body recibido:", req.body);
-        //console.log("Archivo recibido:", req.file);
+        console.log("Body recibido:", req.body);
+        console.log("Archivo recibido:", req.file);
 
-        const { name, description, start_date, end_date, draw_date, prize_count } = req.body;
+        const { name, description, start_date, end_date, draw_date, prize_count, selected_branches } = req.body;
 
-        if (!name || !prize_count || !start_date || !end_date || !draw_date) {
+        // Parsear las sucursales seleccionadas
+        let parsedBranches;
+        try {
+            parsedBranches = JSON.parse(selected_branches); // Convierte '[1,2,9,10]' → [1,2,9,10]
+        } catch (error) {
+            return res.status(400).json({ message: "Las sucursales no tienen el formato correcto." });
+        }
+
+        // Validar que haya al menos una sucursal seleccionada
+        if (!parsedBranches || !Array.isArray(parsedBranches) || parsedBranches.length === 0) {
+            return res.status(400).json({ message: "Debe seleccionar al menos una sucursal." });
+        }
+
+        if (!name || !prize_count || !start_date || !end_date || !draw_date || !selected_branches) {
             return res.status(400).json({ message: "Faltan datos requeridos." });
         }
 
@@ -86,6 +102,7 @@ exports.createGiveaway = async (req, res) => {
             // Generar el code_giveaway
             const code_giveaway = generateGiveawayCode(name.trim(), currentDate.getFullYear());
 
+            // Crear el sorteo
             const newGiveaway = await Giveaway.create({
                 name_giveaway: name.trim(),
                 image_url: req.file.filename,
@@ -95,12 +112,18 @@ exports.createGiveaway = async (req, res) => {
                 draw_date_giveaway: formattedDraw,
                 status_giveaway: status,
                 prize_count: prize_count,
-                code_giveaway: code_giveaway  // Asignar el código generado
+                code_giveaway: code_giveaway, // Asignar el código generado
+                id_branch: parsedBranches[0]  // Tomamos la primera sucursal como principal (por ahora)
             });
 
+            // Obtener el nombre de la sucursal utilizando id_branch
+            const branch = await Branch.findByPk(parsedBranches[0]);  // Buscar la sucursal principal
+            const branchName = branch ? branch.name_branch : "Sucursal no encontrada";  // Obtener el nombre de la sucursal
+
+            // Retornar la respuesta con el nombre de la sucursal
             return res.status(201).json({
                 message: "Sorteo creado correctamente.",
-                data: newGiveaway
+                data: { ...newGiveaway.toJSON(), branchName }  // Incluimos el nombre de la sucursal en la respuesta
             });
 
         } catch (error) {
@@ -131,7 +154,13 @@ function generateGiveawayCode(name, year) {
 // Obtener todos los sorteos con fechas formateadas
 exports.getAllGiveaways = async (req, res) => {
     try {
-        const giveaways = await Giveaway.findAll();
+        const giveaways = await Giveaway.findAll({
+            include: {
+                model: Branch,
+                as: "giveawaysBranch",
+                attributes: ['id_branch', 'name_branch']
+            }
+        });
 
         // Función auxiliar para formatear fechas
         const formatDate = (val) => val ? new Date(val).toISOString().split('T')[0] : null;
@@ -148,7 +177,8 @@ exports.getAllGiveaways = async (req, res) => {
                 draw_date_giveaway: formatDate(gData.draw_date_giveaway),
                 prize_count: gData.prize_count,
                 status_giveaway: gData.status_giveaway,
-                code_giveaway: gData.code_giveaway  
+                code_giveaway: gData.code_giveaway,
+                branchName: gData.branch?.name_branch || "Sucursal no encontrada"
             };
         });
 
@@ -170,7 +200,13 @@ exports.getGiveawayById = async (req, res) => {
     const formatDate = (val) => val ? new Date(val).toISOString().split('T')[0] : null;
 
     try {
-        const giveaway = await Giveaway.findByPk(id);
+        const giveaway = await Giveaway.findByPk(id, {
+            include: {
+                model: Branch,
+                as: "giveawaysBranch",
+                attributes: ['id_branch', 'name_branch']
+            }
+        });
 
         if (!giveaway) {
             return res.status(404).json({ message: "Sorteo no encontrado." });
@@ -186,7 +222,8 @@ exports.getGiveawayById = async (req, res) => {
             draw_date_giveaway: formatDate(gData.draw_date_giveaway),
             prize_count: gData.prize_count,
             status_giveaway: gData.status_giveaway,
-            code_giveaway: gData.code_giveaway 
+            code_giveaway: gData.code_giveaway,
+            branchName: gData.branch?.name_branch || "Sucursal no encontrada"
         };
 
         return res.status(200).json({

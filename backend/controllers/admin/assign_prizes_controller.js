@@ -130,7 +130,7 @@ exports.saveAssignedPrizes = async (req, res) => {
     // Guardar los premios asignados
     const assignments = await GiveawayPrize.bulkCreate(assignedPrizes.map((prize) => ({
       id_giveaway: id_giveaway,
-      id_prize: prize.prize_id,
+      id_prize: prize.id_prize,
       rank: prize.rank,
     })));
 
@@ -144,7 +144,7 @@ exports.saveAssignedPrizes = async (req, res) => {
   }
 };
 
-// Endpoint para obtener los premios asignados para un sorteo //verificar no funciona
+// Endpoint para obtener los premios asignados para un sorteo 
 exports.getAssignedPrizes = async (req, res) => {
   const { id_giveaway } = req.params;
 
@@ -154,6 +154,7 @@ exports.getAssignedPrizes = async (req, res) => {
       where: { id_giveaway: id_giveaway },
       include: [{
         model: Prize,
+        as: 'prize',  // Asegúrate de que el alias coincida con el de la relación en el modelo
         attributes: ['name_prize'],
       }],
       order: [['rank', 'ASC']]
@@ -170,7 +171,7 @@ exports.getAssignedPrizes = async (req, res) => {
     // Formateamos la respuesta para que incluya el nombre del premio y el orden
     const formattedPrizes = assignedPrizes.map(prize => ({
       id_prize: prize.id_prize,
-      name_prize: prize.Prize.name_prize,
+      name_prize: prize.prize.name_prize,  // Usamos el alias aquí también
       rank: prize.rank,
     }));
 

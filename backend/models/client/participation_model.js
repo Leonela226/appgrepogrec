@@ -4,7 +4,6 @@ const sequelize = require("../../config/database");
 const User = require("../../models/common/user_model");
 const CodeQR = require("../../models/client/scanner_qr_model");
 
-
 const Participation = sequelize.define("Participation", {
   id_participation: {
     type: DataTypes.INTEGER,
@@ -29,9 +28,5 @@ const Participation = sequelize.define("Participation", {
   createdAt: "created_at", 
   updatedAt: "updated_at"  
 });
-
-// Relaciones
-Participation.belongsTo(User, { foreignKey: "id_user" });
-Participation.belongsTo(CodeQR, { foreignKey: "id_codes_qr" });
 
 module.exports = Participation;

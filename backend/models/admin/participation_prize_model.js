@@ -33,15 +33,4 @@ const ParticipationPrize = sequelize.define("ParticipationPrize", {
   updatedAt: "updated_at",              // Mapea `updatedAt` a `updated_at`
 });
 
-// Definir las relaciones
-ParticipationPrize.belongsTo(Participation, { foreignKey: 'id_participation' }); // Una participación pertenece a un ParticipationPrize
-ParticipationPrize.belongsTo(GiveawayPrize, { foreignKey: 'id_giveaway_prize' }); // Un premio pertenece a un ParticipationPrize
-
-// Relaciones recíprocas 
-Participation.hasMany(ParticipationPrize, { foreignKey: 'id_participation' }); // Una participación puede tener muchos ParticipationPrize
-GiveawayPrize.hasMany(ParticipationPrize, { foreignKey: 'id_giveaway_prize' }); // Un premio puede estar en muchos ParticipationPrize
-
-
-
-
 module.exports = ParticipationPrize;
