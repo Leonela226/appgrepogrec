@@ -7,7 +7,6 @@ USE nappgrec;
 
 INSERT INTO roles (name_rol)
 VALUES ('Administrador'),
-        ('Moderador'),
         ('cliente');
 
 INSERT INTO permissions (name_permission)
@@ -29,11 +28,7 @@ VALUES
     (1, 6),  -- Administrador puede eliminar contenido
     (1, 7),  -- Administrador puede editar usuarios
     (1, 8),  -- Administrador puede actualizar usuarios
-    (2, 1),  -- Moderador tiene acceso al panel de administración
-    (2, 3),  -- Moderador puede crear contenido
-    (2, 4),  -- Moderador puede editar contenido
-    (2, 5),  -- Moderador puede actualizar contenido
-    (3, 2);  -- Cliente solo tiene acceso al panel de clientes
+    (2, 2);  -- Cliente solo tiene acceso al panel de clientes
 
 INSERT INTO city (name_city)
 VALUES ('Choluteca'),
@@ -63,11 +58,19 @@ VALUES
 SELECT * from users;       
 
 INSERT INTO users (
-    name_user, email_user, google_uid, firebase_uid, profile_photo_url,
+    name_user, email_user, firebase_uid, profile_photo_url,
     phone_number, date_birth, status_user, id_rol
 ) VALUES (
-    'user admin', 'useradmin@gmail.com', NULL, 'SteUbe2DPWNYLdTMRM8N84uw92T2',
+    'user admin', 'useradmin@gmail.com', 'SteUbe2DPWNYLdTMRM8N84uw92T2',
     NULL, '99000100', '2000-12-15', 'activo', 1
+);
+
+INSERT INTO users (
+    name_user, email_user, firebase_uid, profile_photo_url,
+    phone_number, date_birth, status_user, id_rol
+) VALUES (
+    'cliente', 'cliente@gmail.com', 'K4XzsDAPpsVwdtayMVgtfQ9yn532',
+    NULL, '98007105', '2000-11-10', 'activo', 2
 );
 
 

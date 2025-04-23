@@ -35,9 +35,7 @@ CREATE TABLE roles_permissions(
 
 CREATE TABLE carousel_images (
   id_carousel_image INT AUTO_INCREMENT PRIMARY KEY,
-  url_carousel_image VARCHAR(255) NOT NULL,
-  title_carousel_image VARCHAR(100) DEFAULT NULL,
-  description_carousel_image TEXT DEFAULT NULL,
+  url_carousel_image VARCHAR(100) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -72,10 +70,9 @@ CREATE TABLE branches(
 CREATE TABLE users (
     id_user INT AUTO_INCREMENT PRIMARY KEY,              -- Identificador único en la base de datos
     name_user VARCHAR(150) NOT NULL,                       -- Nombre del usuario
-    email_user VARCHAR(100) NOT NULL UNIQUE,              -- Correo electrónico del usuario
-    google_uid VARCHAR(255) UNIQUE,                       -- UID proporcionado por Firebase Authentication (por ejemplo, con Google Auth)
-    firebase_uid VARCHAR(255) UNIQUE,                     -- UID alternativo si el usuario se autentica con otro proveedor
-    profile_photo_url VARCHAR(255),                       -- URL de la foto de perfil
+    email_user VARCHAR(150) NOT NULL UNIQUE,              -- Correo electrónico del usuario
+    firebase_uid VARCHAR(100) UNIQUE,                     -- UID alternativo si el usuario se autentica con otro proveedor
+    profile_photo_url VARCHAR(100),                       -- URL de la foto de perfil
     phone_number VARCHAR(20),                             -- Número de teléfono del usuario 
     date_birth DATE,                                      -- Fecha de nacimiento del usuario
     status_user ENUM('activo', 'inactivo') NOT NULL DEFAULT 'activo',  -- Estado del usuario (activo o inactivo)
@@ -91,11 +88,12 @@ CREATE TABLE giveaways(
     id_giveaway INT AUTO_INCREMENT PRIMARY KEY,
     code_giveaway VARCHAR(100) UNIQUE, /*código relacionado con la creaación del código qr*/
     name_giveaway VARCHAR(100) NOT NULL, /* nombre del sorteo*/
-    image_url VARCHAR(500),
+    image_url VARCHAR(100),
     description_giveaway TEXT, /* descripción del sorteo*/
     start_date_giveaway DATE, /* Inicio del periodo de participación*/
     end_date_giveaway DATE, /* Fin del periodo de participación*/
     draw_date_giveaway DATE, /* Momento exacto del sorteo*/
+    id_branch INT,
     status_giveaway ENUM('pendiente', 'activo', 'realizado', 'cancelado') NOT NULL DEFAULT 'activo', /*Estado del sorteo*/
     prize_count INT NOT NULL,  /*total de premios que se sortearán en el evento, (puede ser 1 o más)*/
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, /*Fecha de creación del registro*/
@@ -104,7 +102,7 @@ CREATE TABLE giveaways(
 
 CREATE TABLE codes_qr(
     id_codes_qr INT AUTO_INCREMENT PRIMARY KEY,
-    value_code_qr VARCHAR(255) NOT NULL UNIQUE,
+    value_code_qr VARCHAR(100) NOT NULL UNIQUE,
     code_giveaway VARCHAR(100) NOT NULL, /*relaciona el código QR con el sorteo*/
     FOREIGN KEY (code_giveaway) REFERENCES giveaways(code_giveaway),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, /*Fecha de creación del registro*/
@@ -145,20 +143,9 @@ CREATE TABLE participations(
 CREATE TABLE participations_prizes(
     id_participation_prize INT AUTO_INCREMENT PRIMARY KEY,
     id_participation INT,
-    id_prize INT,
+    id_giveaway_prize  INT,
     FOREIGN KEY (id_participation) REFERENCES participations(id_participation),
-    FOREIGN KEY (id_prize) REFERENCES prizes(id_prize),
+    FOREIGN KEY (id_giveaway_prize) REFERENCES giveaways_prizes(id_giveaway_prize),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, /* Fecha de creación del registro */
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP /* Fecha de última actualización */
 );
-
-
-CREATE TABLE winners(
-    id_winner INT AUTO_INCREMENT PRIMARY KEY,
-    id_participation_prize INT,
-    status_prize ENUM('pendiente', 'entregado') NOT NULL DEFAULT 'pendiente', /*  Estado del premio */
-    FOREIGN KEY (id_participation_prize) REFERENCES participations_prizes(id_participation_prize),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, /* Fecha de creación del registro */
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP /*  Fecha de última actualización */
-);
-
