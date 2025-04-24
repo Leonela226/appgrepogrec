@@ -19,7 +19,7 @@ const scannerRoute = require("./routes/client/scanner_qr_route");
 const participationRoute = require("./routes/client/participation_route");
 const branchRoute = require("./routes/admin/branches_route");
 const participationPrizeRoute = require("./routes/admin/participation_prize_route");
-const profileAdminRoute = require("./routes/admin/profile_user_admin_route");
+const profileUsersRoute = require("./routes/common/profile_users_route");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -53,7 +53,7 @@ app.use('/api/giveaways',giveawayRoute);
 app.use('/api/assign',assignRoute);
 app.use('/api/branch', branchRoute);
 app.use('/api/participationPrize', participationPrizeRoute);
-app.use('/api/profileAdmin', profileAdminRoute);
+app.use('/api/profileUsers', profileUsersRoute);
 
 
 

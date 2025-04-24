@@ -29,7 +29,6 @@ const CodeQR = sequelize.define("CodeQR", {
   updatedAt: "updated_at"     // Mapea updatedAt a updated_at
 });
 
-// Relación: un código QR pertenece a un sorteo
-CodeQR.belongsTo(Giveaway, { foreignKey: "code_giveaway" });
+
 
 module.exports = CodeQR;
