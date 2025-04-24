@@ -2,13 +2,10 @@
 
 Aplicación móvil Flutter para la gestión y participación en sorteos.
 
-## Getting Started
-
 ## Descripción:
 
 appgrec es una aplicación desarrollada en Flutter que permite a los usuarios registrarse, participar en sorteos mediante el escaneo de códigos QR, consultar premios ganados y visualizar su historial de participaciones.
 Está diseñada para funcionar con Firebase Authentication y un backend desarrollado en Node.js, conectado a una base de datos MySQL.
-
 
 ## Características principales:
 
@@ -24,7 +21,6 @@ Historial de participaciones y premios ganados.
 
 Soporte para múltiples roles de usuario (cliente, administrador).
 
-
 ## Tecnologías utilizadas:
 
 Flutter
@@ -38,6 +34,30 @@ MySQL (vía Sequelize)
 flutter_dotenv
 
 Custom Widgets para diseño consistente
+
+## Getting Started
+
+Sigue estos pasos para configurar y ejecutar appgrec en tu máquina local.
+
+## Requisitos previos
+Asegúrate de tener instalados los siguientes programas:
+
+Flutter: Sigue esta guía para instalar Flutter en tu sistema.
+
+Node.js: Asegúrate de tener Node.js instalado. Puedes descargarlo desde aquí.
+
+MySQL: Asegúrate de tener MySQL en tu sistema o usa un servicio de base de datos en la nube.
+
+## Configuración de Firebase
+Crea un proyecto en Firebase.
+
+Habilita Firebase Authentication en el proyecto.
+
+Configura la autenticación con correo y contraseña.
+
+Descarga el archivo google-services.json (para Android) y configúralo en tu proyecto Flutter (en android/app).
+
+Si usas otras funcionalidades de Firebase (como Firestore, Storage, etc.), configúralas también en la consola de Firebase.
 
 
 A few resources to get you started if this is your first Flutter project:
