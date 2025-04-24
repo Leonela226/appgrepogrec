@@ -10,6 +10,9 @@ class Routes {
   static const String clientHome = '/client_home';
   static const String clientQRscan = '/client_scan';
   static const String profileClientScreen = '/profile_users_client';
+  static const String activityHistoryScreen = '/activity_history';
+  static const String participationHistoryScreen = '/participation_history';
+  static const String historyPrizesScreen = '/history_prize';
 
   static const String adminDashboard = '/admin_dashboard';
   static const String dashboardAdminClient = '/admin_dashboard_client';

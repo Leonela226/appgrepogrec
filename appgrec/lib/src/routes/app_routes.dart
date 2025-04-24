@@ -6,6 +6,9 @@ import 'package:appgrec/src/views/admin/start_giveaway.dart';
 import 'package:appgrec/src/views/admin/user_management.dart';
 import 'package:appgrec/src/views/admin/view_giveaways.dart';
 import 'package:appgrec/src/views/admin/view_prizes.dart';
+import 'package:appgrec/src/views/client/activity.dart';
+import 'package:appgrec/src/views/client/history_participations.dart';
+import 'package:appgrec/src/views/client/history_prizes.dart';
 import 'package:appgrec/src/views/client/home.dart';
 import 'package:appgrec/src/views/client/profile_client.dart';
 import 'package:appgrec/src/views/client/scanner.dart';
@@ -25,6 +28,9 @@ Map<String, Widget Function(BuildContext)> appRoutes = {
   Routes.clientHome: (_) => const ClientHomeScreen(),
   Routes.clientQRscan: (_) => const ClientQRScanScreen(),
   Routes.profileClientScreen: (_) => const ProfileClientScreen(),
+  Routes.activityHistoryScreen: (_) => const ActivityHistoryScreen(),
+  Routes.participationHistoryScreen: (_) => const ParticipationHistoryScreen(),
+  Routes.historyPrizesScreen: (_) => const HistoryPrizesScreen(),
   Routes.adminDashboard: (_) => const AdminDashboardScreen(),
   Routes.dashboardAdminClient: (_) => const DashboardAdminClientScreen(),
   Routes.viewPrizesScreen: (_) => const ViewPrizesScreen(),
