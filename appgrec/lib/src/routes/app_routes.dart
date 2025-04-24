@@ -7,6 +7,7 @@ import 'package:appgrec/src/views/admin/user_management.dart';
 import 'package:appgrec/src/views/admin/view_giveaways.dart';
 import 'package:appgrec/src/views/admin/view_prizes.dart';
 import 'package:appgrec/src/views/client/home.dart';
+import 'package:appgrec/src/views/client/profile_client.dart';
 import 'package:appgrec/src/views/client/scanner.dart';
 import 'package:appgrec/src/views/welcome_screen.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,7 @@ Map<String, Widget Function(BuildContext)> appRoutes = {
   Routes.profileAdminScreen: (_) => const ProfileAdminScreen(),
   Routes.clientHome: (_) => const ClientHomeScreen(),
   Routes.clientQRscan: (_) => const ClientQRScanScreen(),
+  Routes.profileClientScreen: (_) => const ProfileClientScreen(),
   Routes.adminDashboard: (_) => const AdminDashboardScreen(),
   Routes.dashboardAdminClient: (_) => const DashboardAdminClientScreen(),
   Routes.viewPrizesScreen: (_) => const ViewPrizesScreen(),

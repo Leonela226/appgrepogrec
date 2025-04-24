@@ -42,18 +42,11 @@ class ProfileAdminScreenState extends State<ProfileAdminScreen> {
       if (firebaseUid == null) {
         throw Exception('No se pudo obtener el UID del usuario');
       }
-
-      print('UID del usuario: $firebaseUid');  // Verificación del UID
       
-      final response = await http.get(Uri.parse('$baseUrl/api/profileAdmin/firebase/$firebaseUid'));
-
-      print('Response status: ${response.statusCode}');  // Verificación del código de estado
+      final response = await http.get(Uri.parse('$baseUrl/api/profileUsers/firebase/$firebaseUid'));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-
-         print('Datos recibidos del backend: $data');  // Verificación de los datos recibidos
-
         setState(() {
           user = UserModel.fromJson(data);
 

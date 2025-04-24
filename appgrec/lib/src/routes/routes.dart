@@ -5,10 +5,11 @@ class Routes {
   static const String login = '/login';
   static const String register = '/register';
   static const String forgotPassword = '/forgot_password';
-  static const String profileAdminScreen = '/profile_users';
+  static const String profileAdminScreen = '/profile_users_admin';
 
   static const String clientHome = '/client_home';
   static const String clientQRscan = '/client_scan';
+  static const String profileClientScreen = '/profile_users_client';
 
   static const String adminDashboard = '/admin_dashboard';
   static const String dashboardAdminClient = '/admin_dashboard_client';
