@@ -4,8 +4,7 @@ const participationController = require("../../controllers/client/participation_
 
 router.post("/create", participationController.createParticipation);
 
-router.get("/all", participationController.getAllParticipations);
+router.post("/participationSummary", participationController.getUserParticipationSummary);
 
-router.get("/get/:id", participationController.getParticipationById);
 
 module.exports = router;

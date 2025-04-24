@@ -1,4 +1,4 @@
-const Participation = require("../../models/client/participation_model");
+const Participation = require("../../models/client/participation_model"); 
 const User = require("../../models/common/user_model"); 
 const CodeQR = require("../../models/client/scanner_qr_model");
 const Giveaway = require("../../models/admin/view_giveaway_model");
