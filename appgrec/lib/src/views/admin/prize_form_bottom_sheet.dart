@@ -1,3 +1,4 @@
+import 'package:appgrec/src/models/prizes_model.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -7,9 +8,10 @@ import 'package:appgrec/src/widgets/custom_text_form_field.dart';
 import 'package:appgrec/src/widgets/custom_buttons_sec.dart';
 
 class PrizeFormBottomSheet extends StatefulWidget {
-  final Function(String, String)? onSave;
+  final Function(String, String) onSave;
+  final PrizeModel? prize;  // Añadido para la edición de premio.
 
-  const PrizeFormBottomSheet({super.key, this.onSave});
+  const PrizeFormBottomSheet({super.key, this.prize, required this.onSave});
 
   @override
   PrizeFormBottomSheetState createState() => PrizeFormBottomSheetState();
@@ -20,14 +22,25 @@ class PrizeFormBottomSheetState extends State<PrizeFormBottomSheet> {
   final TextEditingController _descriptionController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+
+    // Si hay un premio para editar, inicializa los controladores con los valores del premio
+    if (widget.prize != null) {
+      _nameController.text = widget.prize!.name;
+      _descriptionController.text = widget.prize!.description;
+    }
+  }
+
+  @override
   void dispose() {
     _nameController.dispose();
     _descriptionController.dispose();
     super.dispose();
   }
 
-  // Función para crear el premio
-  Future<void> _createPrize() async {
+  // Función para crear o editar el premio
+  Future<void> _savePrize() async {
     if (_nameController.text.isEmpty || _descriptionController.text.isEmpty) {
       CustomSnackbar.showWarning(context, 'Todos los campos son requeridos.');
       return;
@@ -39,24 +52,44 @@ class PrizeFormBottomSheetState extends State<PrizeFormBottomSheet> {
       return;
     }
 
-    final response = await http.post(
-      Uri.parse('$baseUrl/api/prizes/create'),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: json.encode({
-        'name_prize': _nameController.text,
-        'description_prize': _descriptionController.text,
-      }),
-    );
+    if (widget.prize == null) {
+      // Crear un nuevo premio
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/prizes/create'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'name_prize': _nameController.text,
+          'description_prize': _descriptionController.text,
+        }),
+      );
 
-    if (response.statusCode == 201) {
-      widget.onSave?.call(_nameController.text, _descriptionController.text);
-      CustomSnackbar.showSuccess(context, 'Premio agregado correctamente.');
-      Navigator.of(context).pop();
+      if (response.statusCode == 201) {
+        widget.onSave.call(_nameController.text, _descriptionController.text);
+        CustomSnackbar.showSuccess(context, 'Premio agregado correctamente.');
+        Navigator.of(context).pop();
+      } else {
+        final jsonResponse = json.decode(response.body);
+        CustomSnackbar.showError(context, jsonResponse['message']);
+      }
     } else {
-      final jsonResponse = json.decode(response.body);
-      CustomSnackbar.showError(context, jsonResponse['message']);
+      // Editar un premio existente
+      final response = await http.put(
+        Uri.parse('$baseUrl/api/prizes/update/${widget.prize!.id}'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'name_prize': _nameController.text,
+          'description_prize': _descriptionController.text,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        widget.onSave.call(_nameController.text, _descriptionController.text);
+        CustomSnackbar.showSuccess(context, 'Premio editado correctamente.');
+        Navigator.of(context).pop();
+      } else {
+        final jsonResponse = json.decode(response.body);
+        CustomSnackbar.showError(context, jsonResponse['message']);
+      }
     }
   }
 
@@ -73,9 +106,9 @@ class PrizeFormBottomSheetState extends State<PrizeFormBottomSheet> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  "Agregar Premio",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                Text(
+                  widget.prize == null ? "Agregar Premio" : "Editar Premio",
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 10),
                 CustomTextFormField(
@@ -101,8 +134,8 @@ class PrizeFormBottomSheetState extends State<PrizeFormBottomSheet> {
                       onPressed: () => Navigator.of(context).pop(),
                     ),
                     CustomBottonSec(
-                      text: 'Agregar',
-                      onPressed: _createPrize,
+                      text: widget.prize == null ? 'Agregar' : 'Guardar',
+                      onPressed: _savePrize,
                     ),
                   ],
                 ),

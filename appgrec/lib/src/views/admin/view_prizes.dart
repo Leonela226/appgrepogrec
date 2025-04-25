@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:appgrec/src/models/prizes_model.dart';
 import 'package:appgrec/src/views/admin/prize_form_bottom_sheet.dart';
 import 'package:appgrec/src/widgets/custom_buttons_sec.dart';
 import 'package:appgrec/src/widgets/custom_drawer.dart';
@@ -19,16 +20,93 @@ class ViewPrizesScreen extends StatefulWidget {
 class ViewPrizesScreenState extends State<ViewPrizesScreen> {
   final int itemsPerPage = 5;
   int currentPage = 1;
-  List<String> prizes = [];
-  List<String> filteredPrizes = [];
+  List<PrizeModel> prizes = [];
+  List<PrizeModel> filteredPrizes = [];
+
   bool isLoading = true;
   final TextEditingController _searchController = TextEditingController();
 
-  void addPrize(String name) {
+  void addPrize(PrizeModel prize) {
     setState(() {
-      prizes.add(name);
-      filteredPrizes.add(name);
+      prizes.add(prize);
+      filteredPrizes.add(prize);
     });
+  }
+
+ void editPrize(int index) async {
+  final prizeId = filteredPrizes[index].id;
+  final String? baseUrl = dotenv.env['FRONTEND_URL'];
+
+  if (baseUrl == null || baseUrl.isEmpty) {
+    CustomSnackbar.showError(context, 'Error: FRONTEND_URL no está definida.');
+    return;
+  }
+
+  try {
+    // Obtener los datos actuales del premio
+    final response = await http.get(Uri.parse('$baseUrl/api/prizes/get/$prizeId'));
+
+    if (response.statusCode == 200) {
+     
+      final prizeData = json.decode(response.body); // Decodificar la respuesta
+      final prize = PrizeModel.fromJson(prizeData['data']);  // Si tienes 'data', usa eso
+
+      // Mostrar el formulario de edición
+      showModalBottomSheet(
+        context: context,
+        builder: (context) {
+          return PrizeFormBottomSheet(
+            prize: prize, // Aquí le pasamos el premio para que lo pueda editar
+            onSave: (name, description) async {
+              try {
+                // Realizar PUT para actualizar el premio en la base de datos
+                final updateResponse = await http.put(
+                  Uri.parse('$baseUrl/api/prizes/update/$prizeId'),
+                  headers: {'Content-Type': 'application/json'},
+                  body: json.encode({
+                    'name_prize': name,
+                    'description_prize': description,
+                  }),
+                );
+
+                if (updateResponse.statusCode == 200) {
+                  final updatedPrizeData = json.decode(updateResponse.body)['data'];
+                  final updatedPrize = PrizeModel.fromJson(updatedPrizeData);
+
+                  // Actualizar el premio en la lista localmente
+                  setState(() {
+                    filteredPrizes[index] = updatedPrize;
+                  });
+
+                  CustomSnackbar.showSuccess(context, 'Premio actualizado correctamente.');
+                  Navigator.pop(context); // Cerrar el modal
+                } else {
+                  CustomSnackbar.showError(context, 'No se pudo actualizar el premio.');
+                }
+              } catch (e) {
+                CustomSnackbar.showError(context, 'Error al actualizar el premio: $e');
+              }
+            },
+          );
+        },
+      );
+    } else {
+      CustomSnackbar.showError(context, 'Error al obtener los detalles del premio.');
+    }
+  } catch (e) {
+    CustomSnackbar.showError(context, 'Error al cargar el premio: $e');
+  }
+}
+
+
+
+  void deletePrize(int index) {
+    // Aquí iría la lógica para eliminar un premio
+    setState(() {
+      prizes.removeAt(index);
+      filteredPrizes.removeAt(index);
+    });
+    CustomSnackbar.showError(context, 'Premio eliminado.');
   }
 
   @override
@@ -48,12 +126,13 @@ class ViewPrizesScreenState extends State<ViewPrizesScreen> {
 
     try {
       final response = await http.get(Uri.parse('$baseUrl/api/prizes/all'));
+      
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (mounted) {
           if (data['data'] is List) {
             setState(() {
-              prizes = List<String>.from(data['data']);
+              prizes = (data['data'] as List).map((json) => PrizeModel.fromJson(json)).toList();
               filteredPrizes = List.from(prizes);
               isLoading = false;
             });
@@ -83,7 +162,7 @@ class ViewPrizesScreenState extends State<ViewPrizesScreen> {
         filteredPrizes = List.from(prizes);
       } else {
         filteredPrizes = prizes
-            .where((prize) => prize.toLowerCase().contains(query.toLowerCase()))
+            .where((prize) => prize.name.toLowerCase().contains(query.toLowerCase()))
             .toList();
       }
       currentPage = 1;
@@ -95,7 +174,7 @@ class ViewPrizesScreenState extends State<ViewPrizesScreen> {
     int totalPages = (filteredPrizes.length / itemsPerPage).ceil().clamp(1, double.infinity).toInt();
     int startIndex = (currentPage - 1) * itemsPerPage;
     int endIndex = (startIndex + itemsPerPage).clamp(0, filteredPrizes.length);
-    List<String> visiblePrizes = filteredPrizes.sublist(startIndex, endIndex);
+    List<PrizeModel> visiblePrizes = filteredPrizes.sublist(startIndex, endIndex);
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
@@ -146,7 +225,7 @@ class ViewPrizesScreenState extends State<ViewPrizesScreen> {
                             itemBuilder: (context, index) {
                               return ListTile(
                                 title: Text(
-                                  visiblePrizes[index],
+                                  visiblePrizes[index].name,
                                   style: const TextStyle(fontFamily: 'TitilliumWeb'),
                                 ),
                                 leading: const Icon(Icons.card_giftcard),
@@ -155,6 +234,19 @@ class ViewPrizesScreenState extends State<ViewPrizesScreen> {
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.edit),
+                                      onPressed: () => editPrize(index),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.delete),
+                                      onPressed: () => deletePrize(index),
+                                    ),
+                                  ],
+                                ),
                               );
                             },
                           ),
@@ -189,7 +281,12 @@ class ViewPrizesScreenState extends State<ViewPrizesScreen> {
                         builder: (context) {
                           return PrizeFormBottomSheet(
                             onSave: (name, description) {
-                              addPrize(name);
+                              final newPrize = PrizeModel(
+                                id:0,
+                                name: name,
+                                description: description,
+                              );
+                              addPrize(newPrize);
                             },
                           );
                         },
