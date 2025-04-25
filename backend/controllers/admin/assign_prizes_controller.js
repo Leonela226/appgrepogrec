@@ -98,15 +98,14 @@ exports.saveAssignedPrizes = async (req, res) => {
       return res.status(404).json({ message: 'Sorteo no encontrado' });
     }
 
-    // Verificar que no se exceda la cantidad máxima de premios
     const assignedPrizesCount = assignedPrizes.length;
+
     if (assignedPrizesCount < giveaway.prize_count) {
       return res.status(400).json({
         message: `Faltan premios por asignar. Este sorteo tiene ${giveaway.prize_count} premios en total.`
       });
     }
 
-    // Verificar que no se asignen más premios de los permitidos
     if (assignedPrizesCount > giveaway.prize_count) {
       return res.status(400).json({
         message: `No se pueden asignar más de ${giveaway.prize_count} premios.`
@@ -114,10 +113,12 @@ exports.saveAssignedPrizes = async (req, res) => {
     }
 
     // Verificar si ya existen premios asignados para este sorteo
+    const prizeIds = assignedPrizes.map(prize => prize.prize_id); // CORREGIDO
+
     const existingAssignments = await GiveawayPrize.findAll({
       where: {
         id_giveaway: id_giveaway,
-        id_prize: assignedPrizes.map(prize => prize.prize_id),
+        id_prize: prizeIds,
       },
     });
 
@@ -127,22 +128,28 @@ exports.saveAssignedPrizes = async (req, res) => {
       });
     }
 
-    // Guardar los premios asignados
-    const assignments = await GiveawayPrize.bulkCreate(assignedPrizes.map((prize) => ({
+    // CORREGIDO: accedemos a `prize.prize_id` en vez de `id_prize`
+    const formattedData = assignedPrizes.map((prize) => ({
       id_giveaway: id_giveaway,
-      id_prize: prize.id_prize,
+      id_prize: prize.prize_id,
       rank: prize.rank,
-    })));
+    }));
+
+    console.log("Datos formateados:", formattedData);
+
+    const assignments = await GiveawayPrize.bulkCreate(formattedData);
 
     return res.status(201).json({
       message: 'Premios asignados correctamente.',
       data: assignments,
     });
+
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Error al guardar los premios asignados', error: error.message });
   }
 };
+
 
 // Endpoint para obtener los premios asignados para un sorteo 
 exports.getAssignedPrizes = async (req, res) => {
@@ -155,7 +162,7 @@ exports.getAssignedPrizes = async (req, res) => {
       include: [{
         model: Prize,
         as: 'prize',  // Asegúrate de que el alias coincida con el de la relación en el modelo
-        attributes: ['name_prize'],
+        attributes: ['name_prize'] // Aquí obtenemos el nombre del premio
       }],
       order: [['rank', 'ASC']]
     });
@@ -168,10 +175,12 @@ exports.getAssignedPrizes = async (req, res) => {
       });
     }
 
+
     // Formateamos la respuesta para que incluya el nombre del premio y el orden
     const formattedPrizes = assignedPrizes.map(prize => ({
+      
       id_prize: prize.id_prize,
-      name_prize: prize.prize.name_prize,  // Usamos el alias aquí también
+      name_prize: prize.prize ? prize.prize.name_prize : 'Premio no asignado',
       rank: prize.rank,
     }));
 
