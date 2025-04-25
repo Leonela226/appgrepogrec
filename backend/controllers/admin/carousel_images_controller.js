@@ -118,3 +118,31 @@ exports.getCarouselImageById = async (req, res) => {
     return res.status(500).json({ message: "Error al obtener la imagen.", error: error.message });
   }
 };
+
+
+// Eliminar una imagen del carrusel
+
+exports.deleteCarouselImage = async (req, res) => {
+  const { imageName } = req.params;
+
+  try {
+    const carouselImage = await Carousel.findOne({ where: { url_carousel_image: imageName } });
+
+    if (!carouselImage) {
+      return res.status(404).json({ message: "Imagen no encontrada." });
+    }
+
+    const imagePath = path.join(__dirname, '..', '..', 'uploads', 'carousel_images', imageName);
+
+    fs.unlink(imagePath, async (err) => {
+      if (err) {
+        return res.status(500).json({ message: "Error al eliminar la imagen del servidor." });
+      }
+
+      await carouselImage.destroy(); // Elimina el registro en la base de datos
+      return res.status(200).json({ message: 'Imagen eliminada correctamente.' });
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Error al eliminar la imagen.', error });
+  }
+};
