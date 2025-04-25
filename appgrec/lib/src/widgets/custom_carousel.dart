@@ -3,28 +3,33 @@ import 'package:carousel_slider/carousel_slider.dart';
 
 class CustomCarousel extends StatefulWidget {
   final List<String> imageUrls;
+  final Function(int) onDelete;
+  final Function(int) onSelect;
+  final int? selectedIndex;  // Agregar el parámetro selectedIndex
 
-  const CustomCarousel({super.key, required this.imageUrls});
+  const CustomCarousel({
+    super.key, 
+    required this.imageUrls, 
+    required this.onDelete, 
+    required this.onSelect,
+    this.selectedIndex,  // Inicializar el parámetro
+  });
 
   @override
   CustomCarouselState createState() => CustomCarouselState();
 }
 
 class CustomCarouselState extends State<CustomCarousel> {
-  int _currentIndex = 0; // Índice de la imagen actual
-
   @override
   Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height;
-    double carouselHeight = screenHeight * 0.20; // 20% del alto de la pantalla
+    double carouselHeight = screenHeight * 0.20;
 
-    // Verificar si la lista de imágenes está vacía
     bool isEmpty = widget.imageUrls.isEmpty;
 
     return Column(
       children: [
-        const SizedBox(height: 20), // Espaciado antes del carrusel
-
+        const SizedBox(height: 20),
         isEmpty
             ? SizedBox(
                 height: carouselHeight,
@@ -34,50 +39,52 @@ class CustomCarouselState extends State<CustomCarousel> {
               )
             : CarouselSlider(
                 items: widget.imageUrls.map((imageUrl) {
-                  return Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 5),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(15),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Color.fromRGBO(0, 0, 0, 0.2), // Usamos RGBA con el valor de opacidad
-                          blurRadius: 9, // Difuminado más suave
-                          spreadRadius: 1, // Expansión ligera
-                          offset: const Offset(0, 4), // Sombra baja ligeramente
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(15),
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          Image.network(
-                            imageUrl,
-                            fit: BoxFit.cover,
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return const Center(child: CircularProgressIndicator(
-                                color: Color(0xFF434244),
-                              ));
-                            },
-                            errorBuilder: (context, error, stackTrace) {
-                              return const Center(
-                                child: Icon(Icons.broken_image, size: 50, color: Colors.grey),
-                              );
-                            },
-                          ),
-                          // Gradiente para mejorar visibilidad sin afectar la sombra
-                          Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.bottomCenter,
-                                end: Alignment.center,
-                                colors: [Colors.black26, Colors.transparent],
-                              ),
-                            ),
+                  int index = widget.imageUrls.indexOf(imageUrl);
+                  return GestureDetector(
+                    onTap: () {
+                      widget.onSelect(index); // Seleccionar la imagen
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 5),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(15),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Color.fromRGBO(0, 0, 0, 0.2),
+                            blurRadius: 9,
+                            spreadRadius: 1,
+                            offset: const Offset(0, 4),
                           ),
                         ],
+                        border: Border.all(
+                          color: widget.selectedIndex == index 
+                              ? Colors.blueAccent // Color del borde si está seleccionado
+                              : Colors.transparent, // Sin borde si no está seleccionado
+                          width: 3,
+                        ),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(15),
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            Image.network(
+                              imageUrl,
+                              fit: BoxFit.cover,
+                              loadingBuilder: (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return const Center(child: CircularProgressIndicator(
+                                  color: Color(0xFF434244),
+                                ));
+                              },
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Center(
+                                  child: Icon(Icons.broken_image, size: 50, color: Colors.grey),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   );
@@ -87,32 +94,10 @@ class CustomCarouselState extends State<CustomCarousel> {
                   autoPlay: true,
                   autoPlayInterval: const Duration(seconds: 3),
                   enlargeCenterPage: true,
-                  viewportFraction: 0.8, // Permite ver parte de las imágenes laterales
-                  onPageChanged: (index, reason) {
-                    setState(() {
-                      _currentIndex = index;
-                    });
-                  },
+                  viewportFraction: 0.8,
                 ),
               ),
-
-        const SizedBox(height: 20), // Espaciado después del carrusel
-
-        if (!isEmpty)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(widget.imageUrls.length, (index) {
-              return Container(
-                width: 6,
-                height: 10,
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: _currentIndex == index ? const Color(0xFFFF0000) : const Color(0xFF434244),
-                ),
-              );
-            }),
-          ),
+        const SizedBox(height: 20),
       ],
     );
   }
