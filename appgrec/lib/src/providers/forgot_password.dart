@@ -15,7 +15,7 @@ class ForgotPasswordPage extends StatefulWidget {
 
 class ForgotPasswordPageState extends State<ForgotPasswordPage> {
   final TextEditingController _emailController = TextEditingController();
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>(); // Usar una clave para el formulario
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
 
   // Método para mostrar el SnackBar con color personalizado
@@ -61,50 +61,61 @@ class ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size; // Obtener el tamaño de la pantalla
+
     return Scaffold(
       appBar: const CustomAppBar(), // Usamos el CustomAppBar
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,  // Asignamos el GlobalKey al formulario
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,  // Centra verticalmente
-            children: [
-              // Encabezado "Recuperación de Contraseña"
-              Text(
-                'Recuperación de Contraseña',
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600, // SemiBold
-                  fontFamily: 'TitilliumWeb', // Tipo de letra TitilliumWeb-SemiBold
-                  color: Colors.black,
+      body: Center( // Usamos Center para asegurar el centrado del contenido
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: size.width * 0.08), // Márgenes laterales ajustables
+          child: SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 400), // Limita el ancho en pantallas grandes
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,  // Centra verticalmente
+                  crossAxisAlignment: CrossAxisAlignment.center,  // Centra horizontalmente
+                  children: [
+                    // Encabezado "Recuperación de Contraseña"
+                    Text(
+                      'Recuperación de Contraseña',
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w600, // SemiBold
+                        fontFamily: 'TitilliumWeb', // Tipo de letra TitilliumWeb-SemiBold
+                        color: Colors.black,
+                      ),
+                      textAlign: TextAlign.center, // Centra el texto
+                    ),
+                    SizedBox(height: size.height * 0.05), // Espaciado ajustable
+
+                    // Campo de correo electrónico
+                    CustomTextFormField(
+                      controller: _emailController,
+                      labelText: 'Correo Electrónico',
+                      icon: Icons.email,
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (value) {
+                        return validateEmail(value);
+                      },
+                    ),
+                    SizedBox(height: size.height * 0.05), // Espaciado ajustable
+
+                    // Botón de "Enviar Correo"
+                    CustomButton(
+                      text: _isLoading ? 'Enviando...' : 'Enviar Correo',
+                      onPressed: _isLoading 
+                        ? (){}  // Al estar cargando, no hace nada
+                        : () {
+                            _sendResetEmail();  
+                          },
+                    ),
+                    SizedBox(height: size.height * 0.05), // Espaciado ajustable
+                  ],
                 ),
-                textAlign: TextAlign.center, // Centra el texto
               ),
-              const SizedBox(height: 24), // Espaciado similar al login
-
-              // Campo de correo electrónico
-              CustomTextFormField(
-                controller: _emailController,
-                labelText: 'Correo Electrónico',
-                icon: Icons.email,
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  return validateEmail(value);
-                },
-              ),
-              const SizedBox(height: 24), // Espaciado similar al login
-
-              // Botón de "Enviar Correo"
-              CustomButton(
-                text: _isLoading ? 'Enviando...' : 'Enviar Correo',
-                onPressed: _isLoading 
-                  ? (){}  // Al estar cargando, no hace nada
-                  : () {
-                      _sendResetEmail();  
-                    },
-              ),
-            ],
+            ),
           ),
         ),
       ),

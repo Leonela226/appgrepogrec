@@ -34,11 +34,9 @@ class RegisterPageState extends State<RegisterPage> {
   bool _isPasswordObscure = true;
   bool _isLoading = false;
 
-  // Rol seleccionado y lista de roles
-  // Cambiar el tipo de _selectedRoleId a int?
-  int? _selectedRoleId;  // Guardar el ID del rol como un entero
+  int? _selectedRoleId;
   final Map<String, int> roles = {
-    'Administrador': 1,  // ID de rol de Administrador
+    'Administrador': 1,
   };
 
   @override
@@ -48,7 +46,6 @@ class RegisterPageState extends State<RegisterPage> {
     _passwordController.dispose();
     _phoneController.dispose();
     _dateBirthController.dispose();
-
     _nameFocusNode.dispose();
     _emailFocusNode.dispose();
     _passwordFocusNode.dispose();
@@ -67,37 +64,25 @@ class RegisterPageState extends State<RegisterPage> {
     );
 
     if (picked != null) {
-      String formattedDate =
-          "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
-      _dateBirthController.text = formattedDate;
+      _dateBirthController.text = "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
     }
   }
 
   void _register(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
-
-      String email = _emailController.text.trim();
-      String password = _passwordController.text.trim();
-      String name = _nameController.text.trim();
-      String phone = _phoneController.text.trim();
-      String birthDate = _dateBirthController.text.trim();
+      setState(() => _isLoading = true);
 
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       String? result = await authProvider.registerWithEmail(
-        email,
-        password,
-        name,
-        phone,
-        birthDate,
-         _selectedRoleId,
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+        _nameController.text.trim(),
+        _phoneController.text.trim(),
+        _dateBirthController.text.trim(),
+        _selectedRoleId,
       );
 
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
 
       if (mounted) {
         if (result == null) {
@@ -111,130 +96,137 @@ class RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+
     return Scaffold(
       appBar: const CustomAppBar(),
       body: Stack(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Form(
-              key: _formKey,
-              child: ListView(
-                children: [
-                  const SizedBox(height: 40),
-                  const Text(
-                    'Registro',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontFamily: 'TitilliumWeb',
-                      fontWeight: FontWeight.w600,
-                      fontSize: 24,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  CustomTextFormField(
-                    labelText: 'Nombre',
-                    icon: Icons.person,
-                    controller: _nameController,
-                    focusNode: _nameFocusNode,
-                    validator: validateUsername,
-                    onFieldSubmitted: (_) {
-                      FocusScope.of(context).requestFocus(_emailFocusNode);
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  CustomTextFormField(
-                    labelText: 'Correo Electrónico',
-                    icon: Icons.email,
-                    keyboardType: TextInputType.emailAddress,
-                    controller: _emailController,
-                    focusNode: _emailFocusNode,
-                    validator: validateEmail,
-                    onFieldSubmitted: (_) {
-                      FocusScope.of(context).requestFocus(_passwordFocusNode);
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  CustomTextFormField(
-                    labelText: 'Contraseña',
-                    icon: Icons.lock,
-                    obscureText: _isPasswordObscure,
-                    controller: _passwordController,
-                    focusNode: _passwordFocusNode,
-                    validator: validatePassword,
-                    onFieldSubmitted: (_) {
-                      FocusScope.of(context).requestFocus(_phoneFocusNode);
-                    },
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _isPasswordObscure
-                            ? Icons.visibility
-                            : Icons.visibility_off,
-                        color: Colors.black,
+          Center(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.symmetric(horizontal: size.width * 0.08),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 400),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(height: size.height * 0.05),
+                      const Text(
+                        'Registro',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'TitilliumWeb',
+                          fontWeight: FontWeight.w600,
+                          fontSize: 24,
+                          color: Colors.black,
+                        ),
                       ),
-                      onPressed: () {
-                        setState(() {
-                          _isPasswordObscure = !_isPasswordObscure;
-                        });
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  CustomTextFormField(
-                    labelText: 'Número de Teléfono',
-                    icon: Icons.phone,
-                    keyboardType: TextInputType.phone,
-                    controller: _phoneController,
-                    focusNode: _phoneFocusNode,
-                    validator: validatePhoneNumber,
-                    maxLength: 8,
-                    onFieldSubmitted: (_) {
-                      FocusScope.of(context).requestFocus(_dateBirthFocusNode);
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  GestureDetector(
-                    onTap: () => _selectDate(context),
-                    child: AbsorbPointer(
-                      child: CustomTextFormField(
-                        labelText: 'Fecha de Nacimiento',
-                        icon: Icons.calendar_today,
-                        controller: _dateBirthController,
-                        focusNode: _dateBirthFocusNode,
-                        validator: validateDateOfBirth,
+                      SizedBox(height: size.height * 0.03),
+                      CustomTextFormField(
+                        labelText: 'Nombre',
+                        icon: Icons.person,
+                        controller: _nameController,
+                        focusNode: _nameFocusNode,
+                        validator: validateUsername,
                         onFieldSubmitted: (_) {
-                          FocusScope.of(context).unfocus();
+                          FocusScope.of(context).requestFocus(_emailFocusNode);
                         },
                       ),
-                    ),
+                      SizedBox(height: size.height * 0.02),
+                      CustomTextFormField(
+                        labelText: 'Correo Electrónico',
+                        icon: Icons.email,
+                        keyboardType: TextInputType.emailAddress,
+                        controller: _emailController,
+                        focusNode: _emailFocusNode,
+                        validator: validateEmail,
+                        onFieldSubmitted: (_) {
+                          FocusScope.of(context).requestFocus(_passwordFocusNode);
+                        },
+                      ),
+                      SizedBox(height: size.height * 0.02),
+                      CustomTextFormField(
+                        labelText: 'Contraseña',
+                        icon: Icons.lock,
+                        obscureText: _isPasswordObscure,
+                        controller: _passwordController,
+                        focusNode: _passwordFocusNode,
+                        validator: validatePassword,
+                        onFieldSubmitted: (_) {
+                          FocusScope.of(context).requestFocus(_phoneFocusNode);
+                        },
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _isPasswordObscure ? Icons.visibility : Icons.visibility_off,
+                            color: Colors.black,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isPasswordObscure = !_isPasswordObscure;
+                            });
+                          },
+                        ),
+                      ),
+                      SizedBox(height: size.height * 0.02),
+                      CustomTextFormField(
+                        labelText: 'Número de Teléfono',
+                        icon: Icons.phone,
+                        keyboardType: TextInputType.phone,
+                        controller: _phoneController,
+                        focusNode: _phoneFocusNode,
+                        validator: validatePhoneNumber,
+                        maxLength: 8,
+                        onFieldSubmitted: (_) {
+                          FocusScope.of(context).requestFocus(_dateBirthFocusNode);
+                        },
+                      ),
+                      SizedBox(height: size.height * 0.02),
+                      GestureDetector(
+                        onTap: () => _selectDate(context),
+                        child: AbsorbPointer(
+                          child: CustomTextFormField(
+                            labelText: 'Fecha de Nacimiento',
+                            icon: Icons.calendar_today,
+                            controller: _dateBirthController,
+                            focusNode: _dateBirthFocusNode,
+                            validator: validateDateOfBirth,
+                            onFieldSubmitted: (_) {
+                              FocusScope.of(context).unfocus();
+                            },
+                          ),
+                        ),
+                      ),
+                      if (widget.isAdmin) ...[
+                        SizedBox(height: size.height * 0.02),
+                        CustomDropdownButton<String>(
+                          labelText: 'Rol',
+                          icon: Icons.admin_panel_settings,
+                          selectedValue: roles.keys.firstWhere((key) => roles[key] == _selectedRoleId, orElse: () => 'Administrador'),
+                          items: roles.keys.toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedRoleId = roles[value];
+                            });
+                          },
+                        ),
+                      ],
+                      SizedBox(height: size.height * 0.04),
+                      CustomButton(
+                        text: 'Registrarse',
+                        onPressed: () => _register(context),
+                      ),
+                      SizedBox(height: size.height * 0.05),
+                    ],
                   ),
-                  if (widget.isAdmin) ...[
-                    const SizedBox(height: 16),
-                    CustomDropdownButton<String>(
-                      labelText: 'Rol',
-                      icon: Icons.admin_panel_settings,
-                      selectedValue: roles.keys.firstWhere((key) => roles[key] == _selectedRoleId, orElse: () => 'Administrador'),
-                      items: roles.keys.toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedRoleId = roles[value];  // Asignar el ID del rol
-                        });
-                      },
-                    ),
-                  ],
-                  const SizedBox(height: 32),
-                  CustomButton(
-                    text: 'Registrarse',
-                    onPressed: () => _register(context),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
           if (_isLoading)
             Container(
-              color: Colors.black.withValues(alpha: 128), // Cambiar a withValues
+              color: Colors.black.withAlpha((0.5 * 255).round()),
               child: const Center(
                 child: CircularProgressIndicator(
                   valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF0000)),
