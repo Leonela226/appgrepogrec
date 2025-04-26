@@ -6,5 +6,7 @@ const participationPrizeController = require('../../controllers/admin/participat
 // Ruta para obtener los sorteos con el conteo de participaciones
 router.get('/getGivAvailable', participationPrizeController.getActiveGiveaways);
 
+router.post('/roulette',participationPrizeController.startRoulette)
+
 
 module.exports = router;
