@@ -13,7 +13,8 @@ exports.cardsGiveaway = async (req, res) => {
         'start_date_giveaway', 
         'end_date_giveaway', 
         'draw_date_giveaway',
-        'status_giveaway' // Añadido para devolver el estado
+        'status_giveaway', // Añadido para devolver el estado
+        'description_giveaway'
       ],
       include: [  // Incluir la relación con los premios
         {
@@ -50,6 +51,7 @@ exports.cardsGiveaway = async (req, res) => {
         drawDate: giveaway.draw_date_giveaway,
         prizes: prizeNames,
         status: giveaway.status_giveaway, // Se añade el estado aquí
+        description:giveaway.description_giveaway
       };
     });
 

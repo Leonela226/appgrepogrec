@@ -11,4 +11,7 @@ router.get("/all", carouselController.getAllCarouselImages);
 // Obtener una imagen del carrusel por ID
 router.get("/get/:id", carouselController.getCarouselImageById);
 
+//eliminar imagen del carrusel
+router.delete('/delete/:imageName', carouselController.deleteCarouselImage);
+
 module.exports = router;
