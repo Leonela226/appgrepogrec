@@ -63,7 +63,7 @@ class ProfileAdminScreenState extends State<ProfileAdminScreen> {
   }
 
   void _saveUser(UserModel updatedUser) async {
-    final url = Uri.parse('$baseUrl/api/users/${updatedUser.id}');
+    final url = Uri.parse('$baseUrl/api/profileUsers/updateUsers/${updatedUser.id}');
     try {
       final response = await http.put(
         url,
@@ -80,16 +80,12 @@ class ProfileAdminScreenState extends State<ProfileAdminScreen> {
         setState(() {
           user = updatedUser;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Perfil actualizado exitosamente')),
-        );
+        CustomSnackbar.showSuccess(context, 'Perfil actualizado exitosamente');
       } else {
         throw Exception('Error al actualizar el perfil');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error al actualizar el perfil')),
-      );
+      CustomSnackbar.showError(context, 'Error al actualizar el perfil');
     }
   }
 

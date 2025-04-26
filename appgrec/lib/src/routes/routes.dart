@@ -14,7 +14,7 @@ class Routes {
   static const String participationHistoryScreen = '/participation_history';
   static const String historyPrizesScreen = '/history_prize';
 
-  static const String adminDashboard = '/admin_dashboard';
+
   static const String dashboardAdminClient = '/admin_dashboard_client';
   static const String viewPrizesScreen = '/view_prizes';
   static const String viewGiveawaysScreen = '/view_giveaways';

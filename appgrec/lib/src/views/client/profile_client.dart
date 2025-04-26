@@ -13,9 +13,8 @@ import 'dart:convert';
 class ProfileClientScreen extends StatefulWidget {
   const ProfileClientScreen({super.key});
 
-@override
+  @override
   ProfileAdminScreenState createState() => ProfileAdminScreenState();
-
 }
 
 class ProfileAdminScreenState extends State<ProfileClientScreen> {
@@ -44,7 +43,7 @@ class ProfileAdminScreenState extends State<ProfileClientScreen> {
       if (firebaseUid == null) {
         throw Exception('No se pudo obtener el UID del usuario');
       }
-      
+
       final response = await http.get(Uri.parse('$baseUrl/api/profileUsers/firebase/$firebaseUid'));
 
       if (response.statusCode == 200) {
@@ -52,7 +51,6 @@ class ProfileAdminScreenState extends State<ProfileClientScreen> {
 
         setState(() {
           user = UserModel.fromJson(data);
-
           isLoading = false;
         });
       } else {
@@ -66,7 +64,7 @@ class ProfileAdminScreenState extends State<ProfileClientScreen> {
   }
 
   void _saveUser(UserModel updatedUser) async {
-    final url = Uri.parse('$baseUrl/api/users/${updatedUser.id}');
+    final url = Uri.parse('$baseUrl/api/profileUsers/updateUsers/${updatedUser.id}');
     try {
       final response = await http.put(
         url,
@@ -83,16 +81,12 @@ class ProfileAdminScreenState extends State<ProfileClientScreen> {
         setState(() {
           user = updatedUser;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Perfil actualizado exitosamente')),
-        );
+        CustomSnackbar.showSuccess(context, 'Perfil actualizado exitosamente');
       } else {
         throw Exception('Error al actualizar el perfil');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error al actualizar el perfil')),
-      );
+      CustomSnackbar.showError(context, 'Error al actualizar el perfil');
     }
   }
 
@@ -105,7 +99,8 @@ class ProfileAdminScreenState extends State<ProfileClientScreen> {
         body: const Center(
           child: CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF0000)), // Usando el color rojo
-          )),
+          ),
+        ),
       );
     }
 
@@ -121,6 +116,20 @@ class ProfileAdminScreenState extends State<ProfileClientScreen> {
         ),
       ),
       bottomNavigationBar: const CustomBottomNavBar(),
+
+      //  el botón flotante 
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          try {
+            await FirebaseAuth.instance.signOut();
+            Navigator.pushReplacementNamed(context, '/login'); // Redirige al login después de cerrar sesión
+          } catch (e) {
+            CustomSnackbar.showError(context, 'Error al cerrar sesión: ${e.toString()}');
+          }
+        },
+        backgroundColor: Color(0xFFFF0000), // Rojo para el botón flotante
+        child: const Icon(Icons.logout_rounded, color: Colors.white), // Icono de cerrar sesión
+      ),
     );
   }
 }
