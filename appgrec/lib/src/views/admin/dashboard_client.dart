@@ -1,4 +1,5 @@
 import 'package:appgrec/src/widgets/custom_buttons_sec.dart';
+import 'package:appgrec/src/widgets/custom_cards.dart';
 import 'package:appgrec/src/widgets/custom_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -200,6 +201,7 @@ class DashboardAdminClientScreenState extends State<DashboardAdminClientScreen> 
               ],
             ),
           ),
+          Expanded(child: CustomCardScreen(userRole: 1,)),  // Usar Expanded para que ocupe el espacio disponible
         ],
       ),
     );
