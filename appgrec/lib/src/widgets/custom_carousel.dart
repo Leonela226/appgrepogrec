@@ -22,6 +22,8 @@ class CustomCarousel extends StatefulWidget {
 class CustomCarouselState extends State<CustomCarousel> {
   @override
   Widget build(BuildContext context) {
+    // Usar screenWidth para la visualización dinámica del ancho
+    //double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
     double carouselHeight = screenHeight * 0.20;
 
@@ -93,8 +95,8 @@ class CustomCarouselState extends State<CustomCarousel> {
                   height: carouselHeight,
                   autoPlay: true,
                   autoPlayInterval: const Duration(seconds: 3),
-                  enlargeCenterPage: true,
-                  viewportFraction: 0.8,
+                  enlargeCenterPage: true, // Enfatiza la imagen central
+                  viewportFraction: 0.75, // Muestra parcialmente las imágenes a los laterales
                 ),
               ),
         const SizedBox(height: 20),

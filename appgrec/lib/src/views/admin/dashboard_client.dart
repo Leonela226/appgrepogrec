@@ -15,14 +15,13 @@ class DashboardAdminClientScreen extends StatefulWidget {
   const DashboardAdminClientScreen({super.key});
 
   @override
-  DashboardAdminClientScreenState createState() =>
-      DashboardAdminClientScreenState();
+  DashboardAdminClientScreenState createState() => DashboardAdminClientScreenState();
 }
 
 class DashboardAdminClientScreenState extends State<DashboardAdminClientScreen> {
   List<String> imageUrls = [];
   final ImagePicker _picker = ImagePicker();
-  int? selectedIndex; // Variable para almacenar el índice seleccionado
+  int? selectedIndex;
 
   @override
   void initState() {
@@ -30,7 +29,6 @@ class DashboardAdminClientScreenState extends State<DashboardAdminClientScreen> 
     fetchCarouselImages();
   }
 
-  // Función para cargar las imágenes desde el servidor
   Future<void> fetchCarouselImages() async {
     final String? baseUrl = dotenv.env['FRONTEND_URL'];
     if (baseUrl == null || baseUrl.isEmpty) {
@@ -61,7 +59,6 @@ class DashboardAdminClientScreenState extends State<DashboardAdminClientScreen> 
     }
   }
 
-  // Función para seleccionar la imagen y enviarla al backend
   Future<void> _pickImage() async {
     final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
 
@@ -72,7 +69,7 @@ class DashboardAdminClientScreenState extends State<DashboardAdminClientScreen> 
       return;
     }
 
-    final String? backendUrl = dotenv.env['FRONTEND_URL']; 
+    final String? backendUrl = dotenv.env['FRONTEND_URL'];
     if (backendUrl == null || backendUrl.isEmpty) {
       if (mounted) {
         CustomSnackbar.showError(context, 'Error: FRONTEND_URL no está definida.');
@@ -116,7 +113,6 @@ class DashboardAdminClientScreenState extends State<DashboardAdminClientScreen> 
     }
   }
 
-  // Función para eliminar una imagen
   Future<void> _deleteImage(int index) async {
     final String? backendUrl = dotenv.env['FRONTEND_URL'];
     if (backendUrl == null || backendUrl.isEmpty) {
@@ -135,10 +131,12 @@ class DashboardAdminClientScreenState extends State<DashboardAdminClientScreen> 
       );
 
       if (response.statusCode == 200) {
-        setState(() {
-          imageUrls.removeAt(index);
-          selectedIndex = null;  // Restablecer el índice seleccionado
-        });
+        if (mounted) {
+          setState(() {
+            imageUrls.removeAt(index);
+            selectedIndex = null;
+          });
+        }
         CustomSnackbar.showSuccess(context, 'Imagen eliminada correctamente');
       } else {
         CustomSnackbar.showError(context, 'Error al eliminar la imagen: ${response.statusCode}');
@@ -153,56 +151,61 @@ class DashboardAdminClientScreenState extends State<DashboardAdminClientScreen> 
     return Scaffold(
       drawer: const CustomDrawer(),
       appBar: const CustomAppBar(),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 20.0),
-            child: Text(
-              'Gestión de Vista de Cliente',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w600,
-                fontFamily: 'TitilliumWeb',
-                color: Colors.black,
+      body: SingleChildScrollView(   // CORREGIDO: Scroll único para todo el contenido
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 10),
+              const Center(
+                child: Text(
+                  'Gestión de Vista de Cliente',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: 'TitilliumWeb',
+                    color: Colors.black,
+                  ),
+                ),
               ),
-            ),
+              const SizedBox(height: 10),
+              CustomCarousel(
+                imageUrls: imageUrls,
+                onDelete: _deleteImage,
+                onSelect: (index) {
+                  setState(() {
+                    selectedIndex = index;
+                  });
+                },
+                selectedIndex: selectedIndex,
+              ),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CustomBottonSec(
+                    text: 'Agregar',
+                    onPressed: _pickImage,
+                  ),
+                  const SizedBox(width: 10),
+                  CustomBottonSec(
+                    text: 'Eliminar',
+                    onPressed: () {
+                      if (selectedIndex == null) {
+                        CustomSnackbar.showWarning(context, 'Por favor, selecciona una imagen para eliminar.');
+                        return;
+                      }
+                      _deleteImage(selectedIndex!);
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              CustomCardScreen(userRole: 1),  // Deja de ser Expanded, pero ahora fluye con el Scroll
+            ],
           ),
-          CustomCarousel(
-            imageUrls: imageUrls,
-            onDelete: _deleteImage,  // Pasamos la función de eliminar
-            onSelect: (index) {      // Al seleccionar la imagen, guardamos el índice
-              setState(() {
-                selectedIndex = index;
-              });
-            },
-            selectedIndex: selectedIndex,  // Pasamos el índice seleccionado a la vista
-          ),
-          SizedBox(height: 20),
-          Padding(
-            padding: const EdgeInsets.all(5.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CustomBottonSec(
-                  text: 'Agregar',
-                  onPressed: _pickImage, // Llamar a la función de selección de imagen
-                ),
-                SizedBox(width: 10),
-                CustomBottonSec(
-                  text: 'Eliminar',
-                  onPressed: () {
-                    if (selectedIndex == null) {
-                      CustomSnackbar.showWarning(context, 'Por favor, selecciona una imagen para eliminar.');
-                      return;
-                    }
-                    _deleteImage(selectedIndex!);
-                  },
-                ),
-              ],
-            ),
-          ),
-          Expanded(child: CustomCardScreen(userRole: 1,)),  // Usar Expanded para que ocupe el espacio disponible
-        ],
+        ),
       ),
     );
   }

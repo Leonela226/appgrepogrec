@@ -63,6 +63,8 @@ class CustomCardScreenState extends State<CustomCardScreen> {
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
+      shrinkWrap: true, // <-- Importante para que el scroll funcione en la pantalla 
+      physics: const NeverScrollableScrollPhysics(), // <-- Para que no haga scroll interno
       padding: const EdgeInsets.all(12.0),
       itemCount: cards.length,
       itemBuilder: (context, index) {
@@ -86,7 +88,7 @@ class CustomCardScreenState extends State<CustomCardScreen> {
                 children: [
                   Container(
                     width: double.infinity,
-                    height: 170,
+                    height: 170, // Puedes ajustar la altura aquí
                     decoration: BoxDecoration(
                       color: Colors.grey[200],
                       borderRadius: const BorderRadius.only(
@@ -182,7 +184,7 @@ class CustomCardScreenState extends State<CustomCardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Detalles del Sorteo', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold,fontFamily: 'TitilliumWeb' )),
+                    const Text('Detalles del Sorteo', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, fontFamily: 'TitilliumWeb')),
                     const SizedBox(height: 12),
                     Text('Detalles: ${item['description']}', style: const TextStyle(fontSize: 16, fontFamily: 'TitilliumWeb')),
                   ],
