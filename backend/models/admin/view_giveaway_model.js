@@ -67,24 +67,6 @@ const Giveaway = sequelize.define("Giveaway", {
     updatedAt: "updated_at",
 });
 
-/*
-// Un sorteo pertenece a una sucursal
-Giveaway.belongsTo(Branch, {
-    foreignKey: "id_branch",
-    as: "branch" // Alias que se usará para incluir la sucursal
-});
-
-// Una sucursal puede tener muchos sorteos
-Branch.hasMany(Giveaway, {
-    foreignKey: "id_branch",
-    as: "giveaways"
-});
-
-Giveaway.hasMany(CodeQR, {
-    foreignKey: 'code_giveaway',
-    as: 'codesQR' // Aquí defines el alias
-  });
-*/
 
 module.exports = Giveaway;
 

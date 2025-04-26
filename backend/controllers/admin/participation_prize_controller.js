@@ -1,51 +1,95 @@
-const { Sequelize } = require('sequelize');
-const Giveaway = require('../../models/admin/view_giveaway_model');
-const CodeQR = require('../../models/client/scanner_qr_model');
-const Participation = require('../../models/client/participation_model');
+const { Op } = require('sequelize');
+const sequelize = require("../../config/database");
 
-exports.getGiveawaysWithParticipationCount = async (req, res) => {
+const Giveaway = require("../../models/admin/view_giveaway_model");
+const Participation = require("../../models/client/participation_model");
+const GiveawayPrize = require("../../models/admin/assign_prizes_model");
+const Prize  = require("../../models/admin/prizes_model");
+const CodeQR = require("../../models/client/scanner_qr_model"); 
+
+
+//contenido en tarjetas 
+async function getActiveGiveaways(req, res) {
   try {
     const giveaways = await Giveaway.findAll({
+      where: {
+        status_giveaway: 'activo',
+      },
       include: [
         {
           model: CodeQR,
-          as: 'codesQR',
+          as: 'codesQR',  
           required: false,
           include: [
             {
               model: Participation,
-              as: 'participations',
+              as: 'participations',  
               required: false,
               attributes: [],
-            },
-          ],
-          attributes: [],
+            }
+          ]
         },
+        {
+          model: GiveawayPrize,
+          as: 'giveawayPrizes',
+          attributes: ['id_giveaway_prize', 'id_prize', 'rank'],
+          include: [
+            {
+              model: Prize,
+              as: 'prize',
+              attributes: ['name_prize'],
+            }
+          ]
+        }
       ],
-      attributes: [
-        'id_giveaway',
-        'name_giveaway',
-        'draw_date_giveaway',
-        // Subconsulta de conteo de participaciones
-        [Sequelize.literal(`
-          (SELECT COUNT(*) 
-           FROM participations 
-           INNER JOIN codes_qr 
-           ON codes_qr.id_codes_qr = participations.id_code_qr 
-           WHERE codes_qr.code_giveaway = Giveaway.id_giveaway)
-        `), 'participation_count'],
-      ],
+      attributes: {
+        include: [
+          [sequelize.fn('COUNT', sequelize.col('codesQR.participations.id_participation')), 'total_participations']
+        ]
+      },
+      group: [
+        'Giveaway.id_giveaway',
+        'giveawayPrizes.id_giveaway_prize',
+        'giveawayPrizes->prize.id_prize'
+      ]
     });
 
-    return res.status(200).json({
-      message: 'Sorteos con conteo de participaciones obtenidos correctamente.',
-      data: giveaways,
+    const formattedGiveaways = giveaways.map(giveaway => {
+      return {
+        id: giveaway.id_giveaway,
+        name: giveaway.name_giveaway,
+        drawDate: giveaway.draw_date_giveaway,
+        totalParticipations: giveaway.dataValues.total_participations || 0,
+        prizes: giveaway.giveawayPrizes
+        .filter(prize => prize.prize !== null)
+        .map(prize => prize.prize.name_prize),
+      };
     });
+
+    return res.status(200).json(formattedGiveaways);
+
   } catch (error) {
-    console.error("Error al obtener sorteos con conteo de participaciones:", error);
-    return res.status(500).json({
-      message: "Error al obtener los sorteos con participaciones.",
-      error: error.message,
-    });
+    console.error('Error al obtener los sorteos activos:', error);
+    return res.status(500).json({ error: 'Error al obtener los sorteos activos' });
   }
+}
+
+
+
+// obtener participaciones mostrar los correos
+
+
+
+
+
+
+
+
+
+
+
+//selccionar aleatoriamente ganadores
+
+module.exports = {
+  getActiveGiveaways,
 };

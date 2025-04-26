@@ -14,7 +14,7 @@ const GiveawayPrize = sequelize.define("GiveawayPrize", {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: Giveaway, // en lugar de 'giveaways'
+      model: Giveaway,
       key: 'id_giveaway',
     },
   },
@@ -22,7 +22,7 @@ const GiveawayPrize = sequelize.define("GiveawayPrize", {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: Prize, // en lugar de 'prizes'
+      model: Prize, 
       key: 'id_prize',
     },
   },  
