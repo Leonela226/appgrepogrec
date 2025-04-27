@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:appgrec/src/routes/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -28,42 +29,42 @@ class _StartGiveawayScreenState extends State<StartGiveawayScreen> {
   void initState() {
     super.initState();
     _loadGiveaways();
-
   }
 
-Future<void> _loadGiveaways() async {
-  final String? baseUrl = dotenv.env['FRONTEND_URL'];
-  if (baseUrl == null || baseUrl.isEmpty) {
-    if (mounted) {
-      CustomSnackbar.showError(context, 'Error: FRONTEND_URL no está definida.');
-    }
-    return;
-  }
-
-  try {
-    final response = await http.get(Uri.parse('$baseUrl/api/participationPrize/getGivAvailable'));
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      if (mounted && data is List) {
-        final giveaways = List<Map<String, dynamic>>.from(data);
-
-        setState(() {
-          allGiveaways = giveaways;
-          filteredGiveaways = List.from(giveaways);
-          isLoading = false;
-        });
+  Future<void> _loadGiveaways() async {
+    final String? baseUrl = dotenv.env['FRONTEND_URL'];
+    if (baseUrl == null || baseUrl.isEmpty) {
+      if (mounted) {
+        CustomSnackbar.showError(context, 'Error: FRONTEND_URL no está definida.');
       }
-    } else {
-      throw Exception('Error al cargar los sorteos');
+      return;
     }
-  } catch (e) {
-    if (mounted) {
-      CustomSnackbar.showError(context, 'Error al cargar los sorteos: $e');
-      setState(() => isLoading = false);
+
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/api/participationPrize/getGivAvailable'));
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+
+        if (mounted && data is List) {
+          final giveaways = List<Map<String, dynamic>>.from(data);
+
+          setState(() {
+            allGiveaways = giveaways;
+            filteredGiveaways = List.from(giveaways);
+            isLoading = false;
+          });
+        }
+      } else {
+        throw Exception('Error al cargar los sorteos');
+      }
+    } catch (e) {
+      if (mounted) {
+        CustomSnackbar.showError(context, 'Error al cargar los sorteos: $e');
+        setState(() => isLoading = false);
+      }
     }
   }
-}
 
   void _filterGiveaways(String query) {
     List<Map<String, dynamic>> results = allGiveaways.where((giveaway) {
@@ -106,7 +107,7 @@ Future<void> _loadGiveaways() async {
               const SizedBox(height: 20),
               // Fila con solo Buscador
               SizedBox(
-                width: MediaQuery.of(context).size.width * 0.9, // Usamos el 90% de la pantalla
+                width: MediaQuery.of(context).size.width * 0.9,
                 child: CustomTextFormField(
                   labelText: 'Buscar sorteo',
                   icon: Icons.search,
@@ -135,10 +136,11 @@ Future<void> _loadGiveaways() async {
                             itemCount: visibleGiveaways.length,
                             itemBuilder: (context, index) {
                               final giveaway = visibleGiveaways[index];
-                              final date = giveaway['draw_date_giveaway'] ?? ''; 
-                              final name = giveaway['name_giveaway'] ?? 'Sin nombre';
-                              final participations = giveaway['participationCount']?.toString() ?? '0';  // Aquí obtenemos el conteo de participaciones
-                              final prizes = giveaway['prizes'] ?? [];  // Aquí obtenemos los premios
+                              final date = giveaway['drawDate'] ?? ''; 
+                              final name = giveaway['name'] ?? 'Sin nombre';
+                              final participations = giveaway['totalParticipations']?.toString() ?? '0';  
+                              final prizes = giveaway['prizes'] ?? [];  
+                                       
                               return Card(
                                 margin: const EdgeInsets.symmetric(vertical: 10),
                                 child: ListTile(
@@ -163,7 +165,7 @@ Future<void> _loadGiveaways() async {
                                       children: [
                                         Text('Fecha Sorteo: $date'),
                                         Text('Participaciones: $participations'),
-                                        Text('Premios: ${prizes.join(', ')}'),  // Mostrar los nombres de los premios
+                                        Text('Premios: ${prizes.join(', ')}'),  
                                       ],
                                     ),
                                   ),
@@ -173,15 +175,15 @@ Future<void> _loadGiveaways() async {
                                       alignment: Alignment.centerRight,
                                       child: ElevatedButton(
                                         onPressed: () {
-                                          // Aquí se manejaría la acción de asignar premios, etc.
-                                          //print('Asignar premio para $name');
+                                            final codeGiveaway = giveaway['codeGiveaway'];  
+                                           Navigator.pushNamed(context, Routes.rouletteScreen,  arguments: codeGiveaway);  
                                         },
                                         style: ElevatedButton.styleFrom(
-                                          backgroundColor: const Color.fromARGB(255, 33, 161, 50),
+                                          backgroundColor: Color(0xFF434244),
                                           textStyle: const TextStyle(
                                             fontFamily: 'TitilliumWeb',
-                                            fontWeight: FontWeight.w300,
-                                            fontSize: 12,
+                                            fontWeight: FontWeight.w400,
+                                            fontSize: 14,
                                           ),
                                           foregroundColor: Colors.white,
                                           padding: const EdgeInsets.symmetric(horizontal: 18),
