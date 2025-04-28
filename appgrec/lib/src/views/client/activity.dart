@@ -60,22 +60,7 @@ class ActivityHistoryScreen extends StatelessWidget {
               },
             ),
             const SizedBox(height: 30),
-            // Ganadores recientes
-            const Text(
-              'Ganadores recientes',
-              style: TextStyle(
-                fontFamily: 'TitilliumWeb',
-                fontWeight: FontWeight.w400,
-                fontSize: 18,
-              ),
-            ),
-            const SizedBox(height: 8),
-            CustomButton(
-              text: 'Ver',
-              onPressed: () {
-                // Navegar a pantalla de ganadores recientes
-              },
-            ),
+          
           ],
         ),
 

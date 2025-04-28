@@ -104,7 +104,7 @@ class RegisterPageState extends State<RegisterPage> {
         children: [
           Center(
             child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: size.width * 0.08),
+              padding: EdgeInsets.symmetric(horizontal: size.width > 600 ? 50 : size.width * 0.08),
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 400),
                 child: Form(
@@ -112,7 +112,7 @@ class RegisterPageState extends State<RegisterPage> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      SizedBox(height: size.height * 0.05),
+                      SizedBox(height: size.height * 0.02),
                       const Text(
                         'Registro',
                         textAlign: TextAlign.center,
@@ -200,16 +200,21 @@ class RegisterPageState extends State<RegisterPage> {
                       ),
                       if (widget.isAdmin) ...[
                         SizedBox(height: size.height * 0.02),
-                        CustomDropdownButton<String>(
-                          labelText: 'Rol',
-                          icon: Icons.admin_panel_settings,
-                          selectedValue: roles.keys.firstWhere((key) => roles[key] == _selectedRoleId, orElse: () => 'Administrador'),
-                          items: roles.keys.toList(),
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedRoleId = roles[value];
-                            });
-                          },
+                        Center(
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: CustomDropdownButton<String>(
+                              labelText: 'Rol',
+                              icon: Icons.admin_panel_settings,
+                              selectedValue: roles.keys.firstWhere((key) => roles[key] == _selectedRoleId, orElse: () => 'Administrador'),
+                              items: roles.keys.toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  _selectedRoleId = roles[value];
+                                });
+                              },
+                            ),
+                          ),
                         ),
                       ],
                       SizedBox(height: size.height * 0.04),

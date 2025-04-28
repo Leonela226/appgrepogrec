@@ -21,7 +21,8 @@ class CustomRouletteState extends State<CustomRoulette> {
   Timer? _timer;
   bool _isSpinning = false;
   int winnerIndex = 0;
-  List<String> participants = [];
+  List<Map<String, dynamic>> participants = [];
+  List<Map<String, dynamic>> prizes = [];
 
   @override
   void initState() {
@@ -53,21 +54,18 @@ class CustomRouletteState extends State<CustomRoulette> {
       final response = await http.post(
         Uri.parse('$baseUrl/api/participationPrize/roulette'),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode({'code_giveaway': widget.codeGiveaway}),
+        body: json.encode({'code_giveaway': codeGiveaway}),
       );
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
 
-        if (data['participants'] == null || data['participants'].isEmpty) {
-          print("No hay participantes disponibles.");
-        }
-
         setState(() {
-          participants = List<String>.from(data['participants']);
+          participants = List<Map<String, dynamic>>.from(data['participants']);
+          prizes = List<Map<String, dynamic>>.from(data['prizes']);
         });
       } else {
-        throw Exception('Failed to load participants');
+        throw Exception('Error al cargar participantes');
       }
     } catch (e) {
       CustomSnackbar.showError(context, 'Error al obtener los participantes.');
@@ -77,72 +75,113 @@ class CustomRouletteState extends State<CustomRoulette> {
   void _startTombola() {
     if (_isSpinning) return;
 
+    if (participants.isEmpty) {
+      CustomSnackbar.showError(context, 'No quedan participantes disponibles.');
+      return;
+    }
+
+    if (prizes.isEmpty) {
+      CustomSnackbar.showError(context, 'No quedan premios disponibles.');
+      return;
+    }
+
     setState(() {
       _isSpinning = true;
     });
 
     int index = 0;
-    double speedFactor = 1.0;  // Factor de velocidad (1 es velocidad normal)
+    double speedFactor = 1.0;
     _timer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
       index = (index + 1) % participants.length;
 
-      // Aumentar la velocidad al principio y desacelerar al final
       if (index < participants.length / 2) {
-        speedFactor = 1.0;  // Rápido al principio
+        speedFactor = 1.0;
       } else {
-        speedFactor = 0.5;  // Desacelerar al acercarse al final
+        speedFactor = 0.5;
       }
 
       _controller.animateTo(
         index * 220.0,
-        duration: Duration(milliseconds: (50 / speedFactor).toInt()),  // Cambiar la duración según la velocidad
-        curve: Curves.easeOut,  // Desacelerar al final
+        duration: Duration(milliseconds: (50 / speedFactor).toInt()),
+        curve: Curves.easeOut,
       );
+    });
 
-      if (index == participants.length - 1) {
-        _timer?.cancel();
-        setState(() {
-          _isSpinning = false;
-          winnerIndex = index;
-        });
+    Future.delayed(const Duration(seconds: 5), () {
+      _timer?.cancel();
 
-        _confettiController.play();
+      setState(() {
+        _isSpinning = false;
+        winnerIndex = index % participants.length;
+      });
 
-        Future.delayed(const Duration(milliseconds: 300), () {
-          showDialog(
-            context: context,
-            builder: (context) => Stack(
-              children: [
-                AlertDialog(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                  title: Text('¡Felicidades!'),
-                  content: Text('El ganador es: ${participants[winnerIndex]}'),
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        _confettiController.stop();
-                      },
-                      child: const Text('Cerrar'),
-                    ),
+      _confettiController.play();
+
+      Future.delayed(const Duration(milliseconds: 300), () {
+        Map<String, dynamic>? selectedPrize;
+        if (prizes.isNotEmpty) {
+          selectedPrize = prizes.removeAt(0);
+        }
+
+        final winningEmail = participants[winnerIndex]['realEmail'];
+        final winnerName = participants[winnerIndex]['nameUser']; // Nombre del ganador
+
+        showDialog(
+          context: context,
+          builder: (context) => Stack(
+            children: [
+              AlertDialog(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                title: const Text('¡Felicidades!'),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('El ganador es: $winnerName (${participants[winnerIndex]['censoredEmail']})'),
+                    if (selectedPrize != null) ...[
+                      const SizedBox(height: 10),
+                      Text('Premio: ${selectedPrize['namePrize']}'),
+                      Text('Lugar: ${selectedPrize['rank']}'),
+                    ],
                   ],
                 ),
-                ConfettiWidget(
-                  confettiController: _confettiController,
-                  blastDirectionality: BlastDirectionality.explosive,
-                  shouldLoop: true,
-                  numberOfParticles: 250,
-                  gravity: 0.4,
-                  colors: [Colors.red, Colors.blue, Colors.green, Colors.yellow, Colors.purple],
-                  maxBlastForce: 20,
-                  minBlastForce: 10,
-                  blastDirection: 2.0,
-                ),
-              ],
-            ),
-          );
-        });
-      }
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      _confettiController.stop();
+
+                      // Eliminar todas las participaciones del ganador
+                      setState(() {
+                        participants.removeWhere((participant) => participant['realEmail'] == winningEmail);
+                      });
+
+                      // Verificar si ya no hay premios o participantes
+                      if (prizes.isEmpty) {
+                        CustomSnackbar.showSuccess(context, 'Todos los premios han sido asignados.');
+                      }
+                      if (participants.isEmpty) {
+                        CustomSnackbar.showSuccess(context, 'Todos los participantes han sido premiados.');
+                      }
+                    },
+                    child: const Text('Cerrar'),
+                  ),
+                ],
+              ),
+              ConfettiWidget(
+                confettiController: _confettiController,
+                blastDirectionality: BlastDirectionality.explosive,
+                shouldLoop: true,
+                numberOfParticles: 250,
+                gravity: 0.4,
+                colors: [Colors.red, Colors.blue, Colors.green, Colors.yellow, Colors.purple],
+                maxBlastForce: 20,
+                minBlastForce: 10,
+                blastDirection: 2.0,
+              ),
+            ],
+          ),
+        );
+      });
     });
   }
 
@@ -150,7 +189,6 @@ class CustomRouletteState extends State<CustomRoulette> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Contenedor horizontal para la tómbola
         Container(
           height: 150,
           decoration: BoxDecoration(
@@ -163,10 +201,10 @@ class CustomRouletteState extends State<CustomRoulette> {
           child: ListView.builder(
             controller: _controller,
             itemCount: participants.length,
-            scrollDirection: Axis.horizontal,  // Cambio para mostrar la tómbola horizontal
+            scrollDirection: Axis.horizontal,
             itemBuilder: (context, index) {
               return Container(
-                width: 150,  // Establece el tamaño del item horizontalmente
+                width: 150,
                 margin: const EdgeInsets.symmetric(vertical: 25, horizontal: 20),
                 padding: const EdgeInsets.all(15),
                 decoration: BoxDecoration(
@@ -178,7 +216,7 @@ class CustomRouletteState extends State<CustomRoulette> {
                 ),
                 child: Center(
                   child: Text(
-                    participants[index],
+                    participants[index]['censoredEmail'],
                     style: const TextStyle(
                       color: Colors.black,
                       fontFamily: 'TitilliumWeb',
@@ -193,12 +231,10 @@ class CustomRouletteState extends State<CustomRoulette> {
           ),
         ),
         const SizedBox(height: 20),
-        
-        // Botón debajo de la tómbola
         ElevatedButton(
           onPressed: _startTombola,
           style: ElevatedButton.styleFrom(
-            backgroundColor: Color(0xFF434244),
+            backgroundColor: const Color(0xFF434244),
             textStyle: const TextStyle(
               fontFamily: 'TitilliumWeb',
               fontWeight: FontWeight.w400,
