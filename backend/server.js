@@ -20,6 +20,7 @@ const participationRoute = require("./routes/client/participation_route");
 const branchRoute = require("./routes/admin/branches_route");
 const participationPrizeRoute = require("./routes/admin/participation_prize_route");
 const profileUsersRoute = require("./routes/common/profile_users_route");
+const cardsRoute = require("./routes/admin/cards_route");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -54,7 +55,7 @@ app.use('/api/assign',assignRoute);
 app.use('/api/branch', branchRoute);
 app.use('/api/participationPrize', participationPrizeRoute);
 app.use('/api/profileUsers', profileUsersRoute);
-
+app.use('/api/cards', cardsRoute);
 
 
 //rutas cliente

@@ -79,81 +79,127 @@ async function getActiveGiveaways(req, res) {
 
 
 
-// realización de
+// realización del sorteo 
 async function startRoulette(req, res) {
   try {
-    const { code_giveaway } = req.body;  // Solo necesitamos el código del sorteo
-    console.log("Código del sorteo recibido:", code_giveaway);
+    const { code_giveaway } = req.body;
+    console.log("[INFO] Código del sorteo recibido:", code_giveaway);
 
     if (!code_giveaway) {
+      console.warn("[WARN] Código de sorteo no proporcionado.");
       return res.status(400).json({ error: 'El código del sorteo (code_giveaway) es obligatorio' });
     }
 
-    // 1. Obtener todos los códigos QR relacionados con el sorteo
-    const codesQR = await CodeQR.findAll({
-      where: { code_giveaway }  // Filtramos por el código del sorteo
-    });
+    // Buscar el sorteo
+    const giveaway = await Giveaway.findOne({ where: { code_giveaway } });
+    if (!giveaway) {
+      console.warn("[WARN] No se encontró el sorteo para el código:", code_giveaway);
+      return res.status(400).json({ error: 'No se encontró el sorteo correspondiente al código proporcionado' });
+    }
 
+    const id_giveaway = giveaway.id_giveaway;
+    console.log("[INFO] ID del sorteo encontrado:", id_giveaway);
+
+    // Obtener códigos QR relacionados
+    const codesQR = await CodeQR.findAll({ where: { code_giveaway } });
     if (codesQR.length === 0) {
+      console.warn("[WARN] No se encontraron códigos QR para el sorteo:", code_giveaway);
       return res.status(400).json({ error: 'No se encontraron códigos QR para este sorteo' });
     }
 
-    // 2. Obtener todos los ids de los códigos QR (para buscar las participaciones asociadas)
     const codesQRIds = codesQR.map(code => code.id_codes_qr);
+    console.log("[INFO] IDs de códigos QR encontrados:", codesQRIds);
 
-    // 3. Obtener todas las participaciones asociadas a esos códigos QR
+    // Obtener participaciones
     const participations = await Participation.findAll({
-      where: { id_codes_qr: { [Sequelize.Op.in]: codesQRIds } },  // Filtramos por los códigos QR obtenidos
+      where: { id_codes_qr: { [Sequelize.Op.in]: codesQRIds } },
       include: [
         {
           model: User,
           as: 'user',
-          attributes: ['email_user']  // Traemos el correo del usuario
+          attributes: ['id_user','email_user', 'name_user']
         }
       ]
     });
 
     if (participations.length === 0) {
+      console.warn("[WARN] No hay participaciones registradas para el sorteo:", code_giveaway);
       return res.status(400).json({ error: 'No hay participaciones para este sorteo' });
     }
 
-    // 4. Contamos las participaciones por correo
+    console.log("[INFO] Total de participaciones encontradas:", participations.length);
+
+    // Contar participaciones por correo
     const emailParticipationCount = {};
-
     participations.forEach(participation => {
-      const email = participation.user.email_user;
-      emailParticipationCount[email] = (emailParticipationCount[email] || 0) + 1;
+      if (participation.user) {
+        const email = participation.user.email_user;
+        emailParticipationCount[email] = (emailParticipationCount[email] || 0) + 1;
+      }
     });
+    console.log("[INFO] Conteo de participaciones por correo:", emailParticipationCount);
 
-    console.log("Conteo de participaciones por correo:", emailParticipationCount);
-
-    // 5. Función para censurar parcialmente el correo
+    // Función para censurar correos
     const censorEmail = (email) => {
       const [user, domain] = email.split('@');
-      const censoredUser = user.substring(0, 5) + '******';  // Mostrar solo los primeros 5 caracteres
-      const censoredDomain = domain.substring(0, 3) + '**';  // Mostrar los primeros 3 caracteres del dominio
+      const censoredUser = user.substring(0, 5) + '******';
+      const censoredDomain = domain.substring(0, 3) + '**';
       return censoredUser + '@' + censoredDomain;
     };
 
-    // 6. Crear una lista con los correos censurados y las participaciones expandidas
-    const emailsExpanded = [];
-    for (const [email, count] of Object.entries(emailParticipationCount)) {
-      const censoredEmail = censorEmail(email);  // Censuramos el correo
-      for (let i = 0; i < count; i++) {
-        emailsExpanded.push(censoredEmail);
+    // Expandir participaciones
+    const participantsExpanded = [];
+    participations.forEach(participation => {
+      if (participation.user) {
+        for (let i = 0; i < emailParticipationCount[participation.user.email_user]; i++) {
+          participantsExpanded.push({
+            realEmail: participation.user.email_user,
+            censoredEmail: censorEmail(participation.user.email_user),
+            nameUser: participation.user.name_user,
+            userId: participation.user.id_user
+          });
+        }
       }
-    }
+    });
 
-    // 7. Aleatorizamos el orden de los correos utilizando el algoritmo de Fisher-Yates
-    for (let i = emailsExpanded.length - 1; i > 0; i--) {
+    console.log("[INFO] Participantes expandidos:", participantsExpanded.length);
+
+    // Aleatorizar lista (pero no asignar premios aún)
+    for (let i = participantsExpanded.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [emailsExpanded[i], emailsExpanded[j]] = [emailsExpanded[j], emailsExpanded[i]];  // Intercambiar elementos
+      [participantsExpanded[i], participantsExpanded[j]] = [participantsExpanded[j], participantsExpanded[i]];
     }
 
-    return res.status(200).json({ participants: emailsExpanded });
+    // Obtener premios (no asignar todavía)
+    const giveawayPrizes = await GiveawayPrize.findAll({
+      where: { id_giveaway },
+      include: [{ model: Prize, as: 'prize', attributes: ['name_prize'] }],
+      order: [['rank', 'DESC']]
+    });
+
+    if (giveawayPrizes.length === 0) {
+      console.warn("[WARN] No hay premios asignados para el sorteo:", id_giveaway);
+      return res.status(400).json({ error: 'No hay premios asignados para este sorteo' });
+    }
+
+    console.log("[INFO] Premios disponibles:", giveawayPrizes.map(p => p.prize.name_prize));
+
+    // Guardamos los participantes y premios, pero no asignamos todavía
+    return res.status(200).json({
+      participants: participantsExpanded.map(p => ({
+        censoredEmail: p.censoredEmail,
+        nameUser: p.nameUser,
+        realEmail: p.realEmail, // para que Flutter pueda usarlo internamente 
+        userId: p.userId 
+      })),
+      prizes: giveawayPrizes.map(p => ({
+        namePrize: p.prize.name_prize,
+        rank: p.rank
+      }))
+    });
 
   } catch (error) {
-    console.error('Error en startRoulette:', error);
+    console.error('[ERROR] Error en startRoulette:', error);
     return res.status(500).json({ error: 'Error interno del servidor' });
   }
 }
@@ -161,8 +207,7 @@ async function startRoulette(req, res) {
 
 
 
-
 module.exports = {
   getActiveGiveaways,
-  startRoulette
+  startRoulette,
 };
