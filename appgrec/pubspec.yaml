@@ -56,6 +56,9 @@ dependencies:
   mime: ^2.0.0
   mobile_scanner: ^6.0.7
   shared_preferences: ^2.5.3
+  confetti: ^0.7.0
+
+
  
 
   
