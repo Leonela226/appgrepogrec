@@ -50,13 +50,13 @@ class CustomBottomNavBarState extends State<CustomBottomNavBar> {
         break;
       case 1:
         newRoute =  Routes.profileClientScreen;
-        //break;
+        break;
       case 2:
          newRoute = Routes.clientQRscan;
-      //   break;
-      // case 3:
-      //   newRoute = Routes.sorteos;
-      //   break;
+        break;
+       case 3:
+          newRoute = Routes.activityHistoryScreen;
+         break;
       // case 4:
       //   newRoute = Routes.notifications;
       //   break;
