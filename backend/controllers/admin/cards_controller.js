@@ -20,7 +20,7 @@ exports.cardsGiveaway = async (req, res) => {
         {
           model: GiveawayPrize,
           as: 'giveawayPrizes',  // Alias de la relación
-          attributes: [],  // No necesitamos atributos de GiveawayPrize, solo su relación
+          attributes: [], 
           include: [
             {
               model: Prize,
@@ -42,7 +42,7 @@ exports.cardsGiveaway = async (req, res) => {
       // Asegurarse de que giveaway.giveawayPrizes sea un array
       const prizeNames = (giveaway.giveawayPrizes || []).map(giveawayPrize => giveawayPrize.prize.name_prize);
 
-      // Formatear los datos de manera que se ajusten a lo que espera Flutter
+      //  datos ajustados a lo que espera frontend
       return {
         imageUrl: giveaway.image_url,
         title: giveaway.name_giveaway,
@@ -50,7 +50,7 @@ exports.cardsGiveaway = async (req, res) => {
         endParticipation: giveaway.end_date_giveaway,
         drawDate: giveaway.draw_date_giveaway,
         prizes: prizeNames,
-        status: giveaway.status_giveaway, // Se añade el estado aquí
+        status: giveaway.status_giveaway, 
         description:giveaway.description_giveaway
       };
     });
