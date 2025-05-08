@@ -59,7 +59,7 @@ async function getActiveGiveaways(req, res) {
     const formattedGiveaways = giveaways.map(giveaway => {
       return {
         id: giveaway.id_giveaway,
-        codeGiveaway: giveaway.code_giveaway, // <-- AGREGAR AQUÍ
+        codeGiveaway: giveaway.code_giveaway,
         name: giveaway.name_giveaway,
         drawDate: giveaway.draw_date_giveaway,
         totalParticipations: giveaway.dataValues.total_participations || 0,
