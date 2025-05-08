@@ -57,8 +57,8 @@ exports.getAllPrizes = async (req, res) => {
       data: allPrizes,
     });
   } catch (error) {
-    console.error('Error al obtener los premios:', error);  // Esto muestra el error básico
-    console.error('Stack trace:', error.stack);  // Esto te da el trace completo del error
+    console.error('Error al obtener los premios:', error); 
+    console.error('Stack trace:', error.stack);  
     return res.status(500).json({ message: 'Error al obtener los premios', error: error.message });
   }
 };
@@ -78,7 +78,7 @@ exports.getGiveawayById = async (req, res) => {
     return res.status(200).json({
       message: 'Sorteo encontrado',
       name: giveaway.name_giveaway,
-      prize_count: giveaway.prize_count, // Asegúrate de que este campo exista en tu modelo
+      prize_count: giveaway.prize_count, 
     });
   } catch (error) {
     console.error(error);
@@ -113,7 +113,7 @@ exports.saveAssignedPrizes = async (req, res) => {
     }
 
     // Verificar si ya existen premios asignados para este sorteo
-    const prizeIds = assignedPrizes.map(prize => prize.prize_id); // CORREGIDO
+    const prizeIds = assignedPrizes.map(prize => prize.prize_id); 
 
     const existingAssignments = await GiveawayPrize.findAll({
       where: {
@@ -128,7 +128,7 @@ exports.saveAssignedPrizes = async (req, res) => {
       });
     }
 
-    // CORREGIDO: accedemos a `prize.prize_id` en vez de `id_prize`
+   
     const formattedData = assignedPrizes.map((prize) => ({
       id_giveaway: id_giveaway,
       id_prize: prize.prize_id,
@@ -161,7 +161,7 @@ exports.getAssignedPrizes = async (req, res) => {
       where: { id_giveaway: id_giveaway },
       include: [{
         model: Prize,
-        as: 'prize',  // Asegúrate de que el alias coincida con el de la relación en el modelo
+        as: 'prize',  
         attributes: ['name_prize'] // Aquí obtenemos el nombre del premio
       }],
       order: [['rank', 'ASC']]
