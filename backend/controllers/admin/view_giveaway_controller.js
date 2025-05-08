@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');  // Para generar cadenas alfanuméricas aleatorias
 const Giveaway = require("../../models/admin/view_giveaway_model");
-const Branch = require("../../models/admin/branches_model"); // Ajusta la ruta si es necesario
+const Branch = require("../../models/admin/branches_model"); 
 
 
 // Configuración de almacenamiento para multer
@@ -113,7 +113,7 @@ exports.createGiveaway = async (req, res) => {
                 status_giveaway: status,
                 prize_count: prize_count,
                 code_giveaway: code_giveaway, // Asignar el código generado
-                id_branch: parsedBranches[0]  // Tomamos la primera sucursal como principal (por ahora)
+                id_branch: parsedBranches[0]  // Tomamos la primera sucursal como principal (por ahora) pendiente en modificar ---recordarme
             });
 
             // Obtener el nombre de la sucursal utilizando id_branch
@@ -123,7 +123,7 @@ exports.createGiveaway = async (req, res) => {
             // Retornar la respuesta con el nombre de la sucursal
             return res.status(201).json({
                 message: "Sorteo creado correctamente.",
-                data: { ...newGiveaway.toJSON(), branchName }  // Incluimos el nombre de la sucursal en la respuesta
+                data: { ...newGiveaway.toJSON(), branchName } 
             });
 
         } catch (error) {
