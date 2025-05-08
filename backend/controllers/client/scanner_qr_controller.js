@@ -29,7 +29,7 @@ exports.createCodeQR = async (req, res) => {
         return res.status(404).json({ message: "Sorteo no encontrado." });
       }
 
-      // 🚫 Verifica si ya existe un código QR con ese value
+      // Verifica si ya existe un código QR con ese value
       const existingCodeQR = await CodeQR.findOne({ where: { value_code_qr } });
       if (existingCodeQR) {
         return res.status(409).json({
