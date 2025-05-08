@@ -42,9 +42,9 @@ exports.getAllPrizes = async (req, res) => {
     return res.status(200).json({
       message: "Premios obtenidos correctamente.",
       data: prizes.map(prize => ({
-        id: prize.id_prize,          // Cambiar 'id' por 'id_prize'
-        name: prize.name_prize,      // Cambiar 'name' por 'name_prize'
-        description: prize.description_prize // Cambiar 'description' por 'description_prize'
+        id: prize.id_prize,          
+        name: prize.name_prize,      
+        description: prize.description_prize 
       }))
     });
   } catch (error) {
@@ -84,10 +84,10 @@ exports.getPrizeByIdSub = async (req, res) => {
 
 
 
-// Actualizar un premio existente
+// Actualizar un premio existente pendiente funcionabilidad no probada
 exports.updatePrize = async (req, res) => {
   const { name_prize, description_prize } = req.body;
-  const prizeId = req.params.id;  // Este es el ID del premio que quieres actualizar.
+  const prizeId = req.params.id;  
 
   if (!name_prize || !description_prize) {
     return res.status(400).json({ message: "Faltan datos requeridos." });
