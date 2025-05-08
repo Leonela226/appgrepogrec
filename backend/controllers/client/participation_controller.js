@@ -24,7 +24,7 @@ exports.createParticipation = async (req, res) => {
       return res.status(404).json({ message: "Código QR no encontrado." });
     }
 
-    // (Opcional) Podrías verificar si ya existe una participación de este usuario con ese código QR
+    // verificar si ya existe una participación de este usuario con ese código QR
     const existingParticipation = await Participation.findOne({
       where: { id_user, id_codes_qr }
     });
@@ -59,7 +59,7 @@ exports.createParticipation = async (req, res) => {
 exports.getUserParticipationSummary = async (req, res) => {
   const { firebase_uid } = req.body;
 
-  console.log("DEBUG: UID recibido:", firebase_uid);
+  //console.log("DEBUG: UID recibido:", firebase_uid);
 
   if (!firebase_uid) {
     return res.status(400).json({ message: "El UID de Firebase es requerido." });
@@ -68,7 +68,7 @@ exports.getUserParticipationSummary = async (req, res) => {
   try {
     const user = await User.findOne({ where: { firebase_uid } });
 
-    console.log("DEBUG: Usuario encontrado:", user?.id_user);
+    //console.log("DEBUG: Usuario encontrado:", user?.id_user);
 
     if (!user) {
       return res.status(404).json({ message: "Usuario no encontrado." });
@@ -92,7 +92,7 @@ exports.getUserParticipationSummary = async (req, res) => {
       order: [["participation_date", "ASC"]]
     });
 
-    console.log("DEBUG: Cantidad de participaciones encontradas:", participations.length);
+    //console.log("DEBUG: Cantidad de participaciones encontradas:", participations.length);
 
     if (!participations.length) {
       return res.status(404).json({ message: "El usuario no tiene participaciones registradas." });
