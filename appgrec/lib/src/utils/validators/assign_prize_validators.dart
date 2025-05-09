@@ -1,5 +1,5 @@
 // Esta función verifica si un premio ya fue asignado localmente.
-// Recibe una lista de mapas que representan los premios asignados y un ID de premio.
+// Recibe una lista que representan los premios asignados y un ID de premio.
 // Devuelve true si el ID del premio ya se encuentra en la lista, indicando que ya fue asignado.
 bool isPrizeAlreadyAssignedLocally(List<Map<String, dynamic>> assignedPrizes, int idPrize) {
   return assignedPrizes.any((prize) => prize['premio_id'] == idPrize);
