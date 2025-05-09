@@ -9,7 +9,7 @@ class AuthProvider with ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   User? _user;
   String? _userRole;
-  String? userStatus; // Añadido para gestionar el estado del usuario
+  String? userStatus; 
 
   AuthProvider() {
     _auth.authStateChanges().listen(_onAuthStateChanged);
@@ -19,20 +19,20 @@ class AuthProvider with ChangeNotifier {
   bool get isAuthenticated => _user != null;
   String? get userRole => _userRole;
 
-  // ✅ Obtener id_user almacenado
+  // Obtiene el id_user almacenado
   Future<int?> getUserIdFromPrefs() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getInt('id_user');
   }
 
-  // ✅ Registrar usuario
+  // Registra usuario
   Future<String?> registerWithEmail(
     String email,
     String password,
     String name,
     String phone,
     String birthDate,
-    int? roleId,  // Parámetro opcional para el rol
+    int? roleId, 
   ) async {
     try {
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
@@ -51,7 +51,7 @@ class AuthProvider with ChangeNotifier {
           "name_user": name,
           "phone_number": phone,
           "date_birth": birthDate,
-          'id_role': roleId ?? 2,  // Enviar el ID de rol si se proporciona, por defecto 2 (Cliente)
+          'id_role': roleId ?? 2,  // Envia el ID de rol, por defecto 2 (Cliente)
         }),
       );
 
@@ -70,7 +70,7 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  // ✅ Iniciar sesión y guardar id_user
+  // Inicia sesión y guarda id_user
   Future<String?> loginWithEmail(String email, String password) async {
     try {
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
@@ -79,7 +79,7 @@ class AuthProvider with ChangeNotifier {
       );
       _user = userCredential.user;
 
-      // 👉 Obtener id_user desde backend
+      //  Obtiene id_user desde backend
       if (_user != null) {
         final response = await http.get(
           Uri.parse('${dotenv.env['FRONTEND_URL']}/api/auth/by-uid/${_user!.uid}'),
@@ -91,7 +91,7 @@ class AuthProvider with ChangeNotifier {
           final idUser = data['id_user'];
 
 
-          // 💾 Guardar id_user en SharedPreferences
+          //  Guarda id_user en SharedPreferences
           final prefs = await SharedPreferences.getInstance();
           await prefs.setInt('id_user', idUser);
 
@@ -111,11 +111,11 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-// ✅ Obtener rol y estado del usuario
+//  Obtiene rol y estado del usuario
 Future<void> fetchUserRole({bool fetchRoleAndStatus = false}) async {
   if (_user != null) {
     try {
-      // Se determina qué ruta utilizar según la necesidad
+      // Se determina qué ruta utilizar según la necesidad, por estado o por rol
       String endpoint = fetchRoleAndStatus
           ? '${dotenv.env['FRONTEND_URL']}/api/user/user_role_status?firebase_uid=${_user!.uid}'
           : '${dotenv.env['FRONTEND_URL']}/api/user/user_role?firebase_uid=${_user!.uid}';
@@ -129,7 +129,7 @@ Future<void> fetchUserRole({bool fetchRoleAndStatus = false}) async {
         var data = jsonDecode(response.body);
         _userRole = data['id_rol'].toString();
 
-        // Si estamos obteniendo el rol y estado, también se almacena el estado
+        // Si se obtiene el rol y estado, también se almacena el estado
         if (fetchRoleAndStatus) {
           userStatus = data['status'].toString();
         }
@@ -148,20 +148,20 @@ Future<void> fetchUserRole({bool fetchRoleAndStatus = false}) async {
 }
 
 
-  // ✅ Logout
+  // cerrar sesión
   Future<void> logout() async {
     await _auth.signOut();
     _user = null;
     _userRole = null;
 
-    // 🔥 Limpiar id_user de SharedPreferences
+    // Limpiar id_user de SharedPreferences
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('id_user');
 
     notifyListeners();
   }
 
-  // ✅ Detectar cambio de estado
+  //Detecta cambio de estado / activo / inactivo
   void _onAuthStateChanged(User? firebaseUser) {
     _user = firebaseUser;
     if (_user != null) {
@@ -170,7 +170,7 @@ Future<void> fetchUserRole({bool fetchRoleAndStatus = false}) async {
     notifyListeners();
   }
 
-  // ✅ Recuperar contraseña
+  //  Recuperación de contraseña
   Future<String?> resetPassword(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);
@@ -182,7 +182,7 @@ Future<void> fetchUserRole({bool fetchRoleAndStatus = false}) async {
     }
   }
 
-  // ✅ Mapear errores de Firebase
+  //  Mapea errores de Firebase mapear= correspondencia entre elementos  -- asigna un mensaje de error específico según el tipo de excepción de Firebase.
   String _getErrorMessage(FirebaseAuthException e) {
     Map<String, String> errorMessages = {
       'invalid-email': 'El correo electrónico no es válido.',
