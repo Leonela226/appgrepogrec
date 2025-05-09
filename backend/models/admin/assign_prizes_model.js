@@ -1,6 +1,6 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../../config/database");
-const Giveaway = require("../admin/view_giveaway_model");  //   importar el modelo correctamente
+const Giveaway = require("../admin/view_giveaway_model"); 
 const Prize = require("../admin/prizes_model");
 
 const GiveawayPrize = sequelize.define("GiveawayPrize", {
@@ -32,7 +32,7 @@ const GiveawayPrize = sequelize.define("GiveawayPrize", {
   },
 }, {
   tableName: 'giveaways_prizes',   // El nombre real de la tabla en la BD
-  timestamps: true,                // Sequelize manejará los timestamps
+  timestamps: true,                // Sequelize maneja los timestamps
   createdAt: "created_at",        // Mapea `createdAt` a `created_at`
   updatedAt: "updated_at",        // Mapea `updatedAt` a `updated_at`
 });
