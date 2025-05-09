@@ -31,8 +31,7 @@ String? validateEndDate(String? value, BuildContext context, TextEditingControll
     CustomSnackbar.showWarning(context, 'La fecha de fin debe ser igual o posterior a la fecha de inicio.');
     return ''; 
   }
-  return null; // Retornar null en vez de una cadena vacía
-}
+  return null; 
 
 // Validación de la fecha del sorteo
 String? validateDrawDate(String? value, BuildContext context, TextEditingController endDateController) {
@@ -46,7 +45,7 @@ String? validateDrawDate(String? value, BuildContext context, TextEditingControl
     CustomSnackbar.showWarning(context, 'La fecha del sorteo debe ser igual o posterior a la fecha de fin.');
     return ''; 
   }
-  return null; // Retornar null en vez de una cadena vacía
+  return null; 
 }
 
 
