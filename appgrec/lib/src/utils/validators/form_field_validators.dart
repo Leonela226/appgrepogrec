@@ -82,7 +82,7 @@ String? validateDateOfBirth(String? value) {
     // Verificar que tenga al menos 18 años
     int age = today.year - birthDate.year;
     if (today.month < birthDate.month || (today.month == birthDate.month && today.day < birthDate.day)) {
-      age--; // Ajuste si el cumpleaños aún no ha pasado este año
+      age--; 
     }
 
     if (age < 18) {
