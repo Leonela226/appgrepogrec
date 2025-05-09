@@ -151,7 +151,7 @@ class DashboardAdminClientScreenState extends State<DashboardAdminClientScreen> 
     return Scaffold(
       drawer: const CustomDrawer(),
       appBar: const CustomAppBar(),
-      body: SingleChildScrollView(   // CORREGIDO: Scroll único para todo el contenido
+      body: SingleChildScrollView(   // Scroll único para todo el contenido
         child: Padding(
           padding: const EdgeInsets.all(10.0),
           child: Column(
@@ -202,7 +202,7 @@ class DashboardAdminClientScreenState extends State<DashboardAdminClientScreen> 
                 ],
               ),
               const SizedBox(height: 20),
-              CustomCardScreen(userRole: 1),  // Deja de ser Expanded, pero ahora fluye con el Scroll
+              CustomCardScreen(userRole: 1),  //  ahora fluye con el Scroll
             ],
           ),
         ),
