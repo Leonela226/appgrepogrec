@@ -4,7 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:appgrec/src/providers/auth.dart'; // Importa el proveedor de autenticación
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart'; // Importa dotenv
+import 'package:flutter_dotenv/flutter_dotenv.dart'; 
 import 'package:provider/provider.dart';
 
 void main() async {
@@ -17,18 +17,18 @@ void main() async {
   // Mantener la pantalla de carga hasta que todo esté listo
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
-  // Inicializar Firebase con manejo de errores
+  // Inicializa Firebase con manejo de errores
   try {
   await Firebase.initializeApp();
-  debugPrint("🔥 Firebase inicializado correctamente");
+  debugPrint("Firebase inicializado correctamente");
   } catch (e) {
-  debugPrint("❌ Error al inicializar Firebase: $e");
+  debugPrint("Error al inicializar Firebase: $e");
   }
 
-  // Eliminar la pantalla de carga una vez que todo esté listo
+  // Elimina la pantalla de carga una vez que todo esté listo
   FlutterNativeSplash.remove();
 
-  // Ejecutar la aplicación Flutter
+  // Ejecuta la aplicación Flutter
   runApp(const MyApp()); // Aquí pasas el widget MyApp como constante
 }
 
@@ -44,7 +44,7 @@ class MyApp extends StatelessWidget {
         initialRoute: '/welcome', // Ruta inicial
         routes: appRoutes,
         builder: (context, child) {
-          // Inicializar ScreenUtil aquí para evitar problemas con MediaQuery
+          // Inicializa ScreenUtil aquí para evitar problemas con MediaQuery
           ScreenUtil.init(context, designSize: const Size(375, 812));
           return child!; // Asegúrate de que child no sea nulo
         },
